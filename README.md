@@ -26,17 +26,20 @@
 
 ### Project 2
 
-[Description]https://www.coursera.org/learn/data-products/peer/NLn0H/r-markdown-and-leaflet
+[Description](https://www.coursera.org/learn/data-products/peer/NLn0H/r-markdown-and-leaflet)
+
 [HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_II.html)
 
 ### Project 3
 
-[Description]https://www.coursera.org/learn/data-products/peer/a1Uy9/r-markdown-presentation-plotly
+[Description](https://www.coursera.org/learn/data-products/peer/a1Uy9/r-markdown-presentation-plotly)
+
 [HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_III.html)
 
 ### Project 4
 
-[Description]https://www.coursera.org/learn/data-products/peer/tMYrn/course-project-shiny-application-and-reproducible-pitch
+[Description](https://www.coursera.org/learn/data-products/peer/tMYrn/course-project-shiny-application-and-reproducible-pitch)
+
 [HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_IV.html)
 
 ## Data Science Capstone
