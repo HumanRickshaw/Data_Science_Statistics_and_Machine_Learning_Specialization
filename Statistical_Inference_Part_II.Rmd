@@ -1,0 +1,115 @@
+---
+title: "Statistical Inference Course Projects"
+subtitle: "Part II. Basic Inferential Data Analysis"
+author: "Rohan"
+date: "August 12th, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(gridExtra)
+
+```
+# Data Loading
+
+```{r}
+###Data Loading
+data(ToothGrowth)
+str(ToothGrowth)
+summary(ToothGrowth)
+
+```
+
+# Exploratory Data Analyses
+
+```{r, fig.width = 7, fig.height = 3.5}
+###Exploratory Data Analyses
+gT <- ggplot(ToothGrowth, aes(y = len, x = supp))
+gT <- gT + geom_boxplot(aes(colour = supp))
+gT <- gT + facet_wrap(. ~ dose)
+gT <- gT + theme(plot.title = element_text(hjust = 0.5))
+gT <- gT + ggtitle("Tooth Length by Supplement and Dose")
+gT <- gT + labs(x = "Supplement", y = "Tooth Length")
+gT
+
+```
+
+# Summary of Data
+
+There are 60 observations and 3 variables.  The OJ supplement seems to have more of an effect on tooth length than VC for the 1.0 mg and 1.5 mg doses.  However, for a dose of 2.0 mg, it seems that the affect on tooth length is comparable for OJ and VC.
+Overall, it also seems that the larger the dose, the larger the effect on tooth length, independent of the actual supplement.
+
+# Confidence Intervals and Hypothesis Testing.
+## Comparing VC and OJ for 0.5mg dose.
+
+```{r}
+###Confidence Intervals and Hypothesis Testing
+###Comparing VC and OJ for 0.5mg dose.
+d05 <- ToothGrowth[ToothGrowth$dose == 0.5,]
+t.test(len ~ supp, data = d05)
+
+```
+The p-value = 0.0064.
+
+## Comparing VC and OJ for 1.0mg dose.
+
+```{r}
+###Confidence Intervals and Hypothesis Testing
+###Comparing VC and OJ for 0.5mg dose.
+d10 <- ToothGrowth[ToothGrowth$dose == 1.0,]
+t.test(len ~ supp, data = d10)
+
+```
+The p-value = 0.0010.
+
+## Comparing VC and OJ for 2.0mg dose.
+
+```{r}
+###Confidence Intervals and Hypothesis Testing
+###Comparing VC and OJ for 0.5mg dose.
+d20 <- ToothGrowth[ToothGrowth$dose == 2.0,]
+t.test(len ~ supp, data = d20)
+
+```
+The p-value = 0.964.
+
+## Comparing 0.5mg and 1.0mg dosage, independent of supplement.
+
+```{r}
+###Confidence Intervals and Hypothesis Testing
+###Comparing 0.5mg and 1.0mg dosage, independent of supplement.
+dLight <- ToothGrowth[ToothGrowth$dose < 2.0,]
+t.test(len ~ dose, data = dLight)
+
+```
+The p-value < .000001.
+
+## Comparing 1.0mg and 2.0mg dosage, independent of supplement.
+
+```{r}
+###Confidence Intervals and Hypothesis Testing
+###Comparing 0.5mg and 1.0mg dosage, independent of supplement.
+dHeavy <- ToothGrowth[ToothGrowth$dose > 0.5,]
+t.test(len ~ dose, data = dHeavy)
+
+```
+The p-value < .0001
+
+# Conclusion
+
+For the 0.5mg and 1.0mg doses, we can reject the null hypothesis, and can conclude that Orange Juice has a larger effect on
+tooth growth than Vitamin C.  However, for the 2.0mg dosage, we cannot reject the null hypothesis and therefore draw no  conclusions comparing Orange Juice and Vitamin C on tooth growth.
+
+We can correctly reject the null hypothesis and conclude that the larger the dose, the larger the affect on tooth growth, 
+independent of whether Orange Juice or Vitamin C was administered.
+
+In the ToothGrowth dataset, we are assuming that only the 2 supplements and 3 doses are variables and all other variables for the 60 pigs is constant.  The age and nutrition of the pigs, for example, would be variables that could possibly affect the tooth growth rates.
+
+# Appendix 
+
+R code for all parts of the Simulation exercise.
+
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```

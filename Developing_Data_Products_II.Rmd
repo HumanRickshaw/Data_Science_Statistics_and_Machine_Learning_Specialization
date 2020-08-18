@@ -1,0 +1,52 @@
+---
+title: "Developing Data Products Week 2 Project"
+subtitle: "An Interactive Leaflet Map - Some Fine Breweries in Europe"
+author: "Rohan Lewis"
+date: "December 10, 2019"
+output: html_document
+---
+
+I have been traveling in Europe from early September through the end of November, 2019.  I have marked 10 of my favorite breweries during this trip, where for each brewery I had tried anywhere from two to five of their beers.
+
+I averaged about one beer a day, sometimes two.  For the Brew Companies on my map, I often had their beer first at a bar, their brewery location, or a restaurant.  Sometimes I would find their beer in another bar, a bottle shop, or a grocery mart.  Sometimes I would find the beer at one of those locations in a neighboring country.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(leaflet)
+```
+
+```{r}
+breweries <- data.frame(
+  lat = c(57.586662, 48.203389, 47.482875, 46.881354, 46.686222,
+          46.300837, 45.956386, 45.815295, 42.660737, 43.349531),
+  lng = c(-6.377656, 16.372963, 19.155175, 17.437026, 16.011452,
+          13.959645, 13.664224, 15.861058, 18.085826, 17.804837)
+)
+
+beer_icon <- makeIcon(
+  iconUrl = "https://cdn1.iconfinder.com/data/icons/germany-6/500/SingleCartoonGermanyAlice_12-512.png",
+  iconWidth = 60, iconHeight = 40,
+  iconAnchorX = 30, iconAnchorY = 20
+)
+
+brewery_sites = c(
+  "<a href = 'https://skyeale.com/'>Isle Of Skye Brewing Company</a>",
+  "<a href = 'https://www.1516brewingcompany.com/'>1516 Brewing Company</a>",
+  "<a href = 'https://www.facebook.com/MonyoBrewingCo/'>MONYO Brewing Company</a>",
+  "<a href = 'http://stari.hu/'>Stari Sör</a>",
+  "<a href = 'https://bevog.at/'>Bevog Brauhaus-Brewery</a>",
+  "<a href = 'https://www.lintvern.si/'>Pivovarna Lintvern</a>",
+  "<a href = 'https://reservoir-dogs.beer/'>Reservoir Dogs Bewery</a>",
+  "<a href = 'https://www.pivovara-medvedgrad.hr/'>Pivovara Medvedgrad</a>",
+  "<a href = 'http://www.dubrovackapivovara.hr/'>Dubrovnik Beer Company</a>",
+  "<a href = 'https://www.facebook.com/coolturapivovara/'>Cooltura Craft Pivovara</a>"
+  )
+
+breweries %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(icon = beer_icon, popup = brewery_sites)
+
+```
+

@@ -1,0 +1,129 @@
+---
+title: "Statistical Inference Course Projects"
+subtitle: "Part I. Simulation Exercise"
+author: "Rohan"
+date: "August 12th, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(gridExtra)
+
+```
+# Overview
+
+The Central Limit Theorem will be explored in this exercise.  The data will be 1000
+simulations, each consisting of 40 observations exponentially distributed.  The 
+sample mean and variance will be compared to the theoretical mean and variance.
+ 
+# Simulations
+This simulation creates a data frame of the means and variances of 1000 simulations
+of 40 observations of an exponential distribution with lambda = 0.2.  The means and
+variances of the last five simulations have been displayed.
+ 
+```{r}
+###Simulations
+lambda <- 0.2
+ExpData <- setNames(data.frame(matrix(ncol = 2, nrow = 0)),
+                    c("Means", "Variances"))
+for (i in 1:1000) {
+    TempData <- rexp(40, lambda)
+    ExpData[i, 1] <- mean(TempData)
+    ExpData[i, 2] <- var(TempData)
+    }
+
+tail(ExpData, 5)
+
+```
+
+# Sample Mean vs Theoretical Mean
+This histogram represents the spread of the means from the 1000 simulations.
+The average mean is very close to 5, the theoretical mean.  The means seem to 
+follow a normal distribution. 
+
+```{r, fig.width = 7, fig.height = 3.5}
+###Sample Mean vs Theoretical Mean
+gM <- ggplot(ExpData, aes(Means))
+
+gM <- gM + geom_histogram(bins = 20, color = "black", 
+                          fill = "black", alpha = 0.2)
+gM3 <- gM + theme(plot.title = element_text(hjust = 0.5))
+
+gM <- gM3 + ggtitle("Distribution of Means of 1000 Exponentially Distributed Samples
+(n = 40, lambda = 0.2)")
+gM <- gM + geom_vline(xintercept = mean(ExpData$Means), color = "blue",
+                      linetype = "solid", size = 3)
+gM <- gM + geom_vline(xintercept = 1 / lambda, color = "red",
+                      linetype = "solid", size = 2)
+gM <- gM + geom_text(x = 5.2, y = 120,
+                     label = paste("Mean of Sample Means = ",
+                                   round(mean(ExpData$Means), digits = 2)),
+                     color = "blue", hjust = 0)
+gM <- gM + geom_text(x = 5.2, y = 110,
+                     label = paste("Theoretical Mean = 1 / lambda = ", (1 / lambda)),
+                     color = "red", hjust = 0)
+gM
+
+```
+
+# Sample Variance vs Theoretical Variance
+This histogram represents the spread of the variances from the 1000 simulations.
+The average variance is very close to 25, the theoretical variance.  The variances
+seem to be skewed to the right.
+
+```{r, fig.width = 7, fig.height = 3.5}
+###Sample Variance vs Theoretical Variance
+gV <- ggplot(ExpData, aes(Variances))
+
+gV <- gV + geom_histogram(bins = 20, color = "black",
+                          fill = "black", alpha = 0.2)
+gV <- gV + theme(plot.title = element_text(hjust = 0.5))
+
+gV <- gV + ggtitle("Distribution of Variances of 1000 Exponentially Distributed Samples
+(n = 40, lambda = 0.2)")
+gV <- gV + geom_vline(xintercept = mean(ExpData$Variances), color = "blue",
+                            linetype = "solid", size = 3)
+gV <- gV + geom_vline(xintercept = 1 / lambda ^ 2, color = "red",
+                      linetype = "solid",  size = 2)
+gV <- gV + geom_text(x = 27, y = 140,
+                     label = paste("Mean of Sample Variations = ",
+                                   round(mean(ExpData$Variances), digits = 2)),
+                     color = "blue", hjust = 0)
+gV <- gV + geom_text(x = 27, y = 120,
+                     label = paste("Theoretical Variation = 1 / lambda^2 = ", (1 / lambda^2)),
+                     color = "red", hjust = 0)
+gV
+
+```
+
+# Distribution
+
+On the left is the distribution of 1000 exponentially distributed observations.  The values are skewed to the right.  On the right is the distribution of the 1000 means from our previous simulation, which approach a normal distribution.  This is conveying the Central Limit Theorem, that is that the means of the variables are approaching a normal distribution, even if the individual variables are not normally distributed.  
+
+```{r, fig.width = 7, fig.height = 3.5}
+###Distribution
+ExpData2 <- data.frame(rexp(1000, lambda))
+colnames(ExpData2)<- "Values"
+expSim <- ggplot(ExpData2, aes(Values))
+expSim <- expSim + geom_histogram(bins = 20, color = "black", 
+                                  fill = "black", alpha = 0.2)
+expSim <- expSim + theme(plot.title = element_text(hjust = 0.5))
+
+expSim <- expSim + ggtitle("1000 Exponentially Distributed
+Observations (lambda = 0.2)")
+
+gM3 <- gM3 + ggtitle("Distribution of Means of 1000
+Exponentially Distributed Samples
+(n = 40, lambda = 0.2)")
+grid.arrange(expSim, gM3, nrow = 1)
+
+```
+
+# Appendix 
+
+R code for all parts of the Simulation exercise.
+
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```

@@ -1,0 +1,122 @@
+---
+title: "Practical Machine Learning Course Projects"
+subtitle: "Fitness Quality, not Quantity"
+author: "Rohan Lewis"
+date: "December 23rd, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(caret)
+movement_data <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv")
+prediction_data <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv")
+```
+
+## Summary
+
+The data set used for prediction has 19,622 observations with 160 variables.  This set represents various measurements of movement from various postitions on the body.  There were six participants, and they were asked to perform dumbbell bicep curls.
+
+I created a model and used it to determine the class of execution for 20 observations.
+
+The five classes are as follows:
+
+A) Exactly according to the specification.
+B) Throwing the elbows to the front
+C) Lifting the dumbbell only halfway.
+D) Lowering the dumbbell only halfway.
+E) Throwing the hips to the front.
+
+For more information, here is the page of [Human Activity Recognition](http://groupware.les.inf.puc-rio.br/har). 
+
+## Cleaning
+
+### Eliminating NAs
+
+Many of the variables have many NAs. 67 variables were eliminated for having NAs. 93 were retained for having no NAs. 
+
+### Choosing predictors
+
+As someone who has been training regularly for many years, I am familiar with exercise form and biomechanics.
+
+The most important and unique predictor is the participant.  People have different proportions and do exercises slightly differently than one another.  However, the way an individual performs over time is unique to that individual.
+
+Referring to the five classes of execution, it seems to me that stability is extremely important.  The additional predictors I chose are thus the pitch, roll, and yaw of the dumbbell, forearm, arm, and belt.  Any movement (and lack of movement) detected in any of the three dimensions for these four regions should accurately predict form and be unique for an individual.
+
+Fortunately these none of these predictors were eliminated by removing NAs, which led me to believe I should have a reasonable model with these predictors.
+
+## Partitioning
+90% of the data set was used to create a model.  The remaining 10% of the data set was used to estimate the out of sample error.
+
+## Cross Validation
+
+I chose a 10-fold cross validation with random forest to derive a suitable model.
+
+## Accuracy
+
+The confusion matrix is displayed in the Appendix, and the out of sample error rate is approximately 0.36%.
+
+## Predicted Exercise Execution
+
+The results are displayed in the Appendix.
+
+******
+
+# Appendix 
+
+## Summary
+```{r}
+dim(movement_data)
+print(unique(movement_data$user_name), max.levels = 0)
+```
+
+## Cleaning
+
+### Eliminating NAs
+```{r}
+na_count <- sapply(movement_data, function(x) sum(is.na(x)))
+na_df <- data.frame(na_count)
+to_retain <- subset(na_df, na_count == 0)
+new_movement_data <- movement_data[, row.names(to_retain)]
+table(na_df$na_count)
+
+```
+
+### Choosing predictors
+```{r}
+pry_names <- names(new_movement_data)[grep("^pitch_|^roll_|^yaw_", names(new_movement_data))]
+predictors <- c("user_name", pry_names, "classe")
+new_movement_data <- new_movement_data[, predictors]
+prediction_data <- prediction_data[, predictors[-14]]
+predictors
+```
+
+## Partitioning
+```{r}
+set.seed(12321)
+in_train <- createDataPartition(y = new_movement_data$classe, p = 0.9, list = FALSE)
+training <- new_movement_data[in_train,]
+testing <- new_movement_data[-in_train,]
+```
+
+## Cross Validation
+```{r}
+set.seed(32123)
+train.control <- trainControl(method = "cv", number = 10)
+model <- train(classe ~ ., data = training, method = "rf", trControl = train.control)
+```
+
+## Accuracy
+```{r}
+pred <- predict(model, testing)
+confusion_matrix <- table(pred, testing$classe)
+confusion_matrix
+(sum(confusion_matrix) - sum(diag(confusion_matrix))) / sum(confusion_matrix)
+```
+
+## Predicted Exercise Execution
+```{r}
+print(predict(model, prediction_data), max.levels = 0)
+```

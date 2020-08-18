@@ -1,0 +1,260 @@
+---
+title: "Regression Models Course Projects"
+subtitle: "An Exploration of Mtcars"
+author: "Rohan Lewis"
+date: "November 24th, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(gridExtra)
+library(ggfortify)
+library(Metrics)
+car_data <- mtcars[,c(1,2,4,6,8,9)]
+```
+# Executive Summary
+
+Recent readers of *Motor Trend* have been curious what characteristics of a car influence its fuel consumption, specificially if automatic or manual transmission has a significant effect on miles per gallon on a car.
+
+We here at *AxLewis*  have a long history of automobile evaluation.  While we do understand the readers concern about transmission and its effects on fuel consumption, we would like to present other factors affecting fuel consumption.
+
+A data set, mtcars, was used to draw some conclusions.  It has data on 32 vehicles and 11 variables.  For the purpose of this exploration, we will only be looking at 6 of the variables - fuel consumption, number of cylinders, horsepower, weight of the vehicle, engine layout, and transmission.
+
+# General Information
+
+## Exploratory Data Analysis
+
+Although readers are keen about transmission, the correlation of fuel consumption with each of number of cylinders, horsepower, weight of the vehicle, and even engine layout is greater than that of the correlation of fuel consumption and transmission.  For this reason, we will be comparing several models to create a more clear picture for the readers.
+
+Notice the high correlation between cylinders, horsepower, and weight of the vehicle.  Size of the engine was an ignored variable, but also related to these.  Notice that all of these have a negative relationship with fuel consumption.
+
+Looking at the 32 vehicles' information, we can see the spread of values for fuel consumption, horsepower, and weight.  The number of cylinders in the vehicles is either 4, 6, or 8.  The engine layout is either v-shaped or straight, and the transmission is either automatic or manual.
+
+## Coefficients
+
+Intercepts and slopes for regression fits of each variable have been compiled to a table.
+
+For Cylinders, a car has a fuel efficiency of 37.88 mpg, and each cylinder the car has decreases the fuel efficiency by 2.88 mpg.
+
+For Weight, a car has a fuel efficiency of 37.29 mpg, and for every 1000lbs the car weighs the fuel efficiency decreases by 5.34 mpg.
+
+For Horsepower, a car has a fuel efficiency of 30.10 mpg, and for every horsepower the car has decreases the fuel efficiency by .068 mpg.
+
+For Engine Layout, a car with V-shaped has a fuel efficiency of 16.62 mpg, and being a straight layout increases the fuel efficiency by 7.94 mpg.
+
+Finally, for Transmission, a car with automatic has a fuel efficiency of 17.15 mpg, and being a manual  increases the fuel efficiency by 7.24 mpg.
+
+## Models
+
+A table of p-Values has been included.  Each of the five aspects of the cars is significant and we can safely reject the null hypothesis.  However, Weight and Horsepower, and to an extent Cylinders and Transmission, seem to have more influence on Fuel Efficiency than Transmission.  This also agrees with our Correlation Table and Plots
+
+Fuel Efficiency vs each of Cylinders, Horsepower, Weight, Engine, and Transmission have been shown, while emphasizing Transmission.  Each model, and thus variable, has a noticeable relationship with fuel efficiency.
+
+Regression lines of Weight and Horsepower are shown.  Since Cylinders, Engine, and Transmission are categorical variables, the model points have been included.
+
+## Residual Plots
+
+The residual plots of each model are shown.  A table of the Root Mean Square Error is also included.  Weight, Cylinder, and Horsepower have the smallest RMSE values. 
+
+## Diagnostics
+
+The diagnostics plots are based on a single model of Fuel Efficiency vs all 5 variables discussed thus far.
+
+### Residuals vs Fitted
+
+More cars tested would clarify if the residuals follow a linear or non-linear pattern.   
+
+### Normal Q-Q
+
+The residuals seem to follow the straight line.  There are a few that deviate slightly on either end.  Again, more cars tested would provide more clarity.
+
+### Scale-Location
+
+The residuals appear to be randomly spread.
+
+### Residuals vs Leverage
+
+There are no points on the top right or bottom right that would be excessively influential.
+
+# Conclusion
+In our analysis of the 32 cars tested, vehicles with manual transmission had on average 7.24 mpg better fuel efficiency than vehicles with automatic transmission.  The p-value is ~.001, which is extremely significant.
+
+However, we are not going to make an absolute statement at this time.  It is clear that Cylinders, Horsepower, Weight, and Engine Layout are also significant in affecting fuel efficiency, and quite possibly more significant than Transmission.
+
+We would also like to increase the sample size of cars tested to a larger number over a greater span of years.  Our cars tested were only from 1973 - 1974.
+
+# Appendix 
+
+R Figure and Table outputs.
+
+## Exploratory Data Analysis
+
+### Correlation
+
+```{r}
+cor(car_data)
+```
+
+### Summary 
+```{r}
+summary(car_data)
+```
+
+
+## Coefficients
+```{r}
+
+cyl_reg <- lm(mpg ~ cyl, car_data)
+hp_reg <- lm(mpg ~ hp, car_data)
+wt_reg <- lm(mpg ~ wt, car_data)
+vs_reg <- lm(mpg ~ vs, car_data)
+am_reg <- lm(mpg ~ am, car_data)
+
+coeff <- data.frame(Variable = c("Cylinders", "Weight", "Horsepower", "Engine", "Transmission"),
+                    Intercept = c(cyl_reg$coefficients[1], wt_reg$coefficients[1], hp_reg$coefficients[1], vs_reg$coefficients[1], am_reg$coefficients[1]),
+                    Slope = c(cyl_reg$coefficients[2], wt_reg$coefficients[2], hp_reg$coefficients[2], vs_reg$coefficients[2], am_reg$coefficients[2]))
+
+coeff
+```
+
+
+## Models
+
+### P-Values
+```{r}
+cyl_4_6_test <- t.test(mpg~cyl, data = mtcars[mtcars$cyl != 8,])
+cyl_4_8_test <- t.test(mpg~cyl, data = mtcars[mtcars$cyl != 6,])
+cyl_6_8_test <- t.test(mpg~cyl, data = mtcars[mtcars$cyl != 4,])
+wt_test <- cor.test(mtcars$mpg, mtcars$wt)
+hp_test <- cor.test(mtcars$mpg, mtcars$hp)
+am_test <- t.test(mpg~am, data = mtcars)
+vs_test <- t.test(mpg~vs, data = mtcars)
+
+p_values <- data.frame(Variable = c("4 & 6 Cylinders", "4 & 8 Cylinders", "6 & 8 Cylinders", "Weight",
+                                    "Horsepower", "Engine", "Transmission"),
+                       p_Value = c(cyl_4_6_test$p.value, cyl_4_8_test$p.value, cyl_6_8_test$p.value,
+                                    wt_test$p.value, hp_test$p.value, vs_test$p.value, am_test$p.value))
+p_values
+```
+
+### Plots
+```{r, fig.width = 7, fig.height = 4.5}
+g_cyl <- ggplot(car_data, aes(x = as.factor(cyl), y = mpg)) +
+    geom_point(size = 2.5, aes(color = as.factor(am))) +
+    geom_point(aes(x = 1, y = cyl_reg$coefficients[1] + 4 * cyl_reg$coefficients[2])) +
+    geom_point(aes(x = 2, y = cyl_reg$coefficients[1] + 6 * cyl_reg$coefficients[2])) +
+    geom_point(aes(x = 3, y = cyl_reg$coefficients[1] + 8 * cyl_reg$coefficients[2])) +
+    xlab("Number of Cylinders") +
+    ylab("Fuel Efficiency (MPG)") +
+    ggtitle("Fuel Efficiency vs Cylinders") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(legend.position = "none")
+
+g_wt <- ggplot(car_data, aes(x = wt, y = mpg)) +
+    geom_point(size = 2.5, aes(color = as.factor(am))) +
+    geom_abline(slope = wt_reg$coefficients[2], intercept = wt_reg$coefficients[1]) +
+    xlab("Car Weight (Thousands of lbs.)") +
+    ylab("Fuel Efficiency (MPG)") +
+    ggtitle("Fuel Efficiency vs Weight") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(legend.position = "none")
+
+g_hp <- ggplot(car_data, aes(x = hp, y = mpg)) +
+    geom_point(size = 2.5, aes(color = as.factor(am))) +
+    geom_abline(slope = hp_reg$coefficients[2], intercept = hp_reg$coefficients[1]) +
+    xlab("Horsepower") +
+    ylab("Fuel Efficiency (MPG)") +
+    ggtitle("Fuel Efficiency vs Horsepower") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(legend.position = "none")
+
+g_vs <- ggplot(car_data, aes(x = as.factor(vs), y = mpg)) +
+    geom_point(size = 2.5, aes(color = as.factor(am))) +
+    geom_point(aes(x = 1, y = vs_reg$coefficients[1])) +
+    geom_point(aes(x = 2, y = vs_reg$coefficients[1] + vs_reg$coefficients[2])) +
+    xlab("Engine Layout") +
+    scale_x_discrete(labels = c("V-Shaped", "Straight")) +
+    ylab("Fuel Efficiency (MPG)") +
+    ggtitle("Fuel Efficiency vs Engine Layout") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(legend.position = "none")
+    
+g_am <- ggplot(car_data, aes(x = as.factor(am), y = mpg)) +
+    geom_point(size = 2.5, aes(color = as.factor(am))) +
+    geom_point(aes(x = 1, y = am_reg$coefficients[1])) +
+    geom_point(aes(x = 2, y = am_reg$coefficients[1] + am_reg$coefficients[2])) +
+    xlab("Transmission") +
+    scale_x_discrete(labels = c("Automatic", "Manual")) +
+    ylab("Fuel Efficiency (MPG)") +
+    ggtitle("Fuel Efficiency vs Engine Layout") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(color = "Transmission") +
+    scale_color_discrete(name = "Transmission", labels = c("Automatic", "Manual"))
+
+grid.arrange(g_cyl, g_wt, g_hp, g_vs, g_am, layout_matrix = rbind(c(1, 2), c(3, 4), c(5, 5)))
+```
+
+## Residual Plots
+```{r, fig.width = 7, fig.height = 4}
+
+g_cyl_reg <- ggplot(cyl_reg, aes(x = .fitted, y = .resid)) +
+    geom_point(size = 2.5) +
+    xlab("Fitted Values") +
+    ylab("Residuals") +
+    ylim(-10,10) +
+    ggtitle("Cylinder Linear Regression Model") +
+    theme(plot.title = element_text(hjust = 0.5))
+
+g_hp_reg <- ggplot(hp_reg, aes(x = .fitted, y = .resid)) +
+    geom_point(size = 2.5) +
+    xlab("Fitted Values") +
+    ylab("Residuals") +
+    ylim(-10, 10) +
+    ggtitle("Horsepower Linear Regression Model") +
+    theme(plot.title = element_text(hjust = 0.5))
+
+g_wt_reg <- ggplot(wt_reg, aes(x = .fitted, y = .resid)) +
+    geom_point(size = 2.5) +
+    xlab("Fitted Values") +
+    ylab("Residuals") +
+    ylim(-10, 10) +
+    ggtitle("Weight Linear Regression Model") +
+    theme(plot.title = element_text(hjust = 0.5))
+
+g_vs_reg <- ggplot(vs_reg, aes(x = .fitted, y = .resid)) +
+    geom_point(size = 2.5) +
+    xlab("Fitted Values") +
+    ylab("Residuals") +
+    ggtitle("Engine Linear Regression Model") +
+    theme(plot.title = element_text(hjust = 0.5))
+
+g_am_reg <- ggplot(am_reg, aes(x = .fitted, y = .resid)) +
+    geom_point(size = 2.5) +
+    xlab("Fitted Values") +
+    ylab("Residuals") +
+    ggtitle("Transmission Linear Regression Model") +
+    theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(g_cyl_reg, g_wt_reg, g_hp_reg, g_vs_reg, g_am_reg, layout_matrix = rbind(c(1, 2), c(3, 4), c(5, 5)))
+```
+
+### Root Mean Square Error
+```{r}
+rmses <- data.frame(Variable = c("Cylinders", "Weight", "Horsepower", "Engine", "Transmission"),
+                    Root_Mean_Square_Error = c(rmse(car_data$mpg, cyl_reg$fitted.values),
+                                                rmse(car_data$mpg, wt_reg$fitted.values),
+                                                rmse(car_data$mpg, hp_reg$fitted.values),
+                                                rmse(car_data$mpg, vs_reg$fitted.values),
+                                                rmse(car_data$mpg, am_reg$fitted.values)))
+rmses
+```
+
+## Diagnostics
+```{r, fig.width = 7, fig.height = 4}
+reg <- lm(mpg ~ cyl + wt + hp + vs + am, car_data)
+
+autoplot(reg, label = FALSE) + theme(plot.title = element_text(hjust = 0.5))
+
+```
