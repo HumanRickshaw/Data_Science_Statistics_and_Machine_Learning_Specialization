@@ -1,0 +1,97 @@
+---
+title: "Developing Data Products Week 3 Project"
+subtitle: "State of Emergency, Stay at Home"
+author: "Rohan Lewis"
+date: "August 29th, 2020"
+output: ioslides_presentation
+---
+
+## Information
+
+The following graph shows displays the cumulative population of the US under a State of Emergency and Stay at Home mandate by their state government.  Each point can be clicked, opening a URL of the official state document (at least in most cases).
+
+American Samoa, Arkansas, Guam, North Dakota, Northern Mariana Islands, South Dakota, and Wyoming never issued a Stay at Home order.
+
+Iowa, Kentucky, Massachusetts, Oklahoma, Nebraska, and Utah issued an advisory, not an order.  Depending on which document, news source, press release, or website one looks at, the label changes.  I found these six states to be in the gray area between an order and not one at all.
+
+##  
+
+```{r setup, include = FALSE}
+
+library(plotly)
+library(htmlwidgets)
+
+emergency <- read.csv("./StatesEmergency.csv") %>% mutate(Date = as.Date(Date))
+#Eight states and Territories have yet to issue an equivalent Stay at Home order.
+not_Yet <- emergency %>% filter(is.na(emergency$Date))
+
+emergency <- emergency %>% filter(!(is.na(emergency$Type2)))
+
+title <- list(text = "<b>US States and Territories Population and their COVID-19 Mandates</b>",
+              y = 0.95,
+              font = list(size = 20))
+
+xaxis <- list(
+  title = "<b>Date of Order</b>",
+  range = c("2020-02-25", "2020-04-15"),
+  tickangle = -45,
+  tickfont = list(size = 12),
+  titlefont = list(size = 16)
+)
+
+yaxis <- list(
+  title = "<b>Cumulative Population of US</b>",
+  tickfont = list(size = 12),
+  titlefont = list(size = 16)
+)
+
+#https://stackoverflow.com/questions/56084819/open-link-on-datapoint-click-with-plotly-in-r-shiny
+js <- "
+  function(el, x) {
+    el.on('plotly_click', function(d) {
+      var point = d.points[0];
+      var url = point.data.customdata[point.pointIndex];
+      window.open(url);
+      });
+  }"
+
+p <- plot_ly(emergency[emergency$Type %in% c(1, 2, 2.5),],
+             type = 'scatter',
+             mode = 'markers',
+             x = ~Date,
+             y = ~Cumulative_Population,
+             color = ~Type2,
+             colors = "Dark2",
+             customdata = ~Link,
+             hoverinfo = "text",
+             size = 4,
+             text = ~paste("</br>", State,
+                           "</br> Population: ", prettyNum(Population, big.mark = ","),
+                           "</br>", Type_Name, "on", Date))
+  
+ p <- p %>% layout(height = 550,
+                   width = 800,
+                   margin = list(t = 50),
+                   title = title,
+                   xaxis = xaxis,
+                   yaxis = yaxis)
+
+ p <- p %>% onRender(js)
+```
+```{r, echo = FALSE, warning = FALSE}
+p
+```
+
+## Thank You
+
+I would have liked to include a cumulative population of reopenings from the end of April through May, but the definitions were not clear, the categories became too complicated, and the official documents were not always followed.
+
+Some states had an official reopening plan, some let their Stay at Home order expire, some partially reopened before the expiration, and some had no clear dates.  Some amended their Stay at Home order expiration date, and some had indefinite Stay at Home orders with no expiration date. Some states never really followed their original plan to begin with.
+
+[Repository with Code]("https://github.com/HumanRickshaw/Data_Science_Statistics_and_Machine_Learning_Specialization/blob/master/Developing_Data_Products_II.Rmd")
+
+Questions? Comments?
+
+rohan.lewis@gmail.com
+
+
