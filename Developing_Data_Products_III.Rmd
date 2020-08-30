@@ -92,10 +92,8 @@ Some states had an official reopening plan, some let their Stay at Home order ex
 
 [American Samoa, Guam, Northern Mariana Islands, and Virgin Islands Population.](https://www.worldometers.info/world-population/population-by-country/)
 
-[Repository with Code](https://github.com/HumanRickshaw/Data_Science_Statistics_and_Machine_Learning_Specialization/blob/master/Developing_Data_Products_II.Rmd)
+[Repository with Code](https://github.com/HumanRickshaw/Data_Science_Statistics_and_Machine_Learning_Specialization/blob/master/Developing_Data_Products_III.Rmd)
 
-Questions? Comments?
-
-rohan.lewis@gmail.com
+Questions? Comments?   rohan.lewis@gmail.com
 
 
