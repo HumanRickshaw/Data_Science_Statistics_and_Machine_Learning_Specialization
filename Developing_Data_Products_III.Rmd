@@ -8,7 +8,7 @@ output: ioslides_presentation
 
 ## Information
 
-The following graph shows displays the cumulative population of the US under a State of Emergency and Stay at Home mandate by their state government.  Each point can be clicked, opening a URL of the official state document (at least in most cases).
+The following graph shows the cumulative population of the US under a State of Emergency and Stay at Home mandate by their state government.  Each point can be clicked, opening a URL of the official state document (at least in most cases).
 
 American Samoa, Arkansas, Guam, North Dakota, Northern Mariana Islands, South Dakota, and Wyoming never issued a Stay at Home order.
 
@@ -64,7 +64,7 @@ p <- plot_ly(emergency[emergency$Type %in% c(1, 2, 2.5),],
              colors = "Dark2",
              customdata = ~Link,
              hoverinfo = "text",
-             size = 4,
+             size = 6,
              text = ~paste("</br>", State,
                            "</br> Population: ", prettyNum(Population, big.mark = ","),
                            "</br>", Type_Name, "on", Date))
@@ -82,13 +82,17 @@ p <- plot_ly(emergency[emergency$Type %in% c(1, 2, 2.5),],
 p
 ```
 
-## Thank You
+## 
 
 I would have liked to include a cumulative population of reopenings from the end of April through May, but the definitions were not clear, the categories became too complicated, and the official documents were not always followed.
 
-Some states had an official reopening plan, some let their Stay at Home order expire, some partially reopened before the expiration, and some had no clear dates.  Some amended their Stay at Home order expiration date, and some had indefinite Stay at Home orders with no expiration date. Some states never really followed their original plan to begin with.
+Some states had an official reopening plan, some let their Stay at Home order expire, some partially reopened before the expiration, and some had no clear dates.  Some amended their Stay at Home order expiration date, and some had an indefinite Stay at Home order with no expiration date. Some states never really followed their original plan to begin with.
 
-[Repository with Code]("https://github.com/HumanRickshaw/Data_Science_Statistics_and_Machine_Learning_Specialization/blob/master/Developing_Data_Products_II.Rmd")
+[State, DC, and Puerto Rico Population.](https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-total.html) 
+
+[American Samoa, Guam, Northern Mariana Islands, and Virgin Islands Population.](https://www.worldometers.info/world-population/population-by-country/)
+
+[Repository with Code](https://github.com/HumanRickshaw/Data_Science_Statistics_and_Machine_Learning_Specialization/blob/master/Developing_Data_Products_II.Rmd)
 
 Questions? Comments?
 
