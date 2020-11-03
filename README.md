@@ -1,45 +1,33 @@
 # [Data Science: Statistics and Machine Learning Specialization](https://www.coursera.org/specializations/data-science-statistics-machine-learning)
 
-## Statistical Inference
+## [Statistical Inference](https://www.coursera.org/learn/statistical-inference)
 
-[Description](https://www.coursera.org/learn/statistical-inference/peer/3k8j5/statistical-inference-course-project)
+[Simulation Exercise](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Statistical_Inference_Part_I.html)
 
-### Part I
-[HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Statistical_Inference_Part_I.html)
+[Basic Inferential Data Analysis](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Statistical_Inference_Part_II.html)
 
-### Part II
-[HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Statistical_Inference_Part_II.html)
+## [Regression Models](https://www.coursera.org/learn/regression-models)
 
-## Regression Models
+[An Exploration of Mtcars](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Regression_Models.html)
 
-[Description](https://www.coursera.org/learn/regression-models/peer/nxntd/regression-models-course-project)
+## [Practical Machine Learning](https://www.coursera.org/learn/practical-machine-learning)
 
-[HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Regression_Models.html)
-
-## Practical Machine Learning
-
-[Description](https://www.coursera.org/learn/practical-machine-learning/peer/R43St/prediction-assignment-writeup)
-
-[HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Practical_Machine_Learning.html)
+[Fitness Quality, not Quantity](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Practical_Machine_Learning.html)
 
 ## Developing Data Products
 
 ### Project 2
 
-[Description](https://www.coursera.org/learn/data-products/peer/NLn0H/r-markdown-and-leaflet)
-
-[HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_II.html)
+[Some Fine Breweries in Europe](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_II.html)
 
 ### Project 3
 
-[Description](https://www.coursera.org/learn/data-products/peer/a1Uy9/r-markdown-presentation-plotly)
-
-[HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_III.html)
+    [State of Emergency, Stay at Home](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_III.html)
 
 ### Project 4
 
-[Description](https://www.coursera.org/learn/data-products/peer/tMYrn/course-project-shiny-application-and-reproducible-pitch)
+[US Coronavirus Presentation (Under Construction)]()
 
-[HTML](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_IV.html)
+[US Coronavirus Visualization (Under Construction)](https://humanrickshaw.shinyapps.io/US_Coronavirus_Visualization/)
 
-## Data Science Capstone
+## [Data Science Capstone](https://www.coursera.org/learn/data-science-project)
