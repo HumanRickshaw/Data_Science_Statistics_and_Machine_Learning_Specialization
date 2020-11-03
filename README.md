@@ -14,7 +14,7 @@
 
 [Fitness Quality, not Quantity](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Practical_Machine_Learning.html)
 
-## Developing Data Products
+## [Developing Data Products](https://www.coursera.org/learn/data-products)
 
 ### Project 2
 
@@ -22,7 +22,7 @@
 
 ### Project 3
 
-    [State of Emergency, Stay at Home](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_III.html)
+[State of Emergency, Stay at Home](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_III.html)
 
 ### Project 4
 
