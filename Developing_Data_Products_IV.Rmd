@@ -1,0 +1,202 @@
+---
+title: "Developing Data Products Week 4 Project"
+subtitle: "US Coronavirus Visualization"
+author: "Rohan Lewis"
+date: "November 15th, 2020"
+output: ioslides_presentation
+---
+
+## Information
+
+This short presentation is to summarize my Coronavirus Visualization App.
+
+I created this app in April and have slowly added different features to it.
+
+It allows a user to look at cumulative cases and deaths at anytime from January 2020 to present by states and counties.
+
+There are graphs, maps, growth information, and compared metrics.  I will use my home state NC for a few examples.
+
+```{r Setup, include = FALSE}
+
+knitr::opts_chunk$set(comment = NA)
+
+#Packages
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+library(scales)
+library(tidyr)
+library(urbnmapr)
+
+#Current date.
+yesterday = Sys.Date() - 1
+
+#Colors
+greens = c("#E5F5E0", "#C7E9C0", "#A1D99B", "#74C476", "#41AB5D", "#238B45", "#006D2C", "#00441B")
+```
+
+##
+
+Here is a sample graph for NC Cases.  In the app, this information can be for states or counties, for a specified date, and for one of five different metrics.
+
+```{r Graph, echo = FALSE}
+
+#Sample contains data for NC.
+nc_corona <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv") %>%
+  filter(state == "North Carolina") %>%
+  mutate(date = as.Date(date)) %>%
+  select(1,4,5) %>%
+  `colnames<-`(c("Date", "Cases", "Deaths")) %>%
+  gather(Type, People, c(Cases, Deaths))  
+
+title = paste("Cumulative Cases in North Carolina as of",
+              yesterday)
+
+#Graph
+nc <- ggplot(nc_corona %>% filter(Type == "Cases"), aes(x = Date, y = People))
+
+#Plot Points
+nc <- nc + geom_point(color = greens[4], size = 2, alpha = 0.4)
+nc <- nc + labs(title = title,
+                y = "Confirmed/Probable Cases")
+  
+#Scales
+nc <- nc + scale_x_date(name = "Date", date_breaks = "1 months", date_labels = "%B %d", expand = c(0, 0))
+nc <- nc + scale_y_continuous(labels = comma)
+
+#Theme Details
+nc <- nc + theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+                 axis.text.x = element_text(hjust = 1, size = 10, angle = 45),
+                 axis.text.y = element_text(size = 10),
+                 axis.title = element_text(size = 16, face = "bold"))     
+nc  
+```
+
+##
+
+Here is a sample map for NC Cases.  In the app, this information can be for any state or territory, for a specified date, choropleth or bubble plot, and for cases or deaths.
+
+```{r Choropleth, echo = FALSE}
+
+#Sample contains data for NC counties.
+counties_corona <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv") %>%
+  filter(state == "North Carolina",
+         date == yesterday) %>%
+  select(2, 4, 5, 6) %>%
+  `colnames<-`(c("County", "county_fips", "Cases", "Deaths"))
+
+
+
+#NC County Map Data.    
+counties_mapping <- as.data.frame(counties) %>%
+  filter(state_abbv == "NC") %>%
+  mutate(county_fips = as.integer(county_fips),
+         county_name = as.character(county_name))
+
+
+
+#To color counties by deaths.
+counties_fill <- merge(x = counties_corona,
+                       y = counties_mapping,
+                       by = "county_fips")
+
+title = paste("Cumulative Deaths in North Carolina as of",
+              yesterday)
+
+nc_deaths <- prettyNum(nc_corona[nc_corona$Date == yesterday & nc_corona$Type == "Deaths",][[3]],
+                       big.mark = ",")
+
+caption <- paste("NC has had",
+                 nc_deaths,
+                 "confirmed and probable deaths from COVID-19.")
+
+
+choro <- ggplot() + labs(title = title,
+                         caption = caption)
+
+#Fill all counties with grey.
+choro <- choro + geom_polygon(counties_mapping,
+                              mapping = aes(x = long, y = lat, group = group),
+                              fill = "lightgrey")
+
+#Fill counties with people values.
+choro <- choro + geom_polygon(counties_fill,
+                              mapping = aes(x = long, y = lat, group = group, fill = Deaths))
+#Fill Gradient.
+choro <- choro + scale_fill_gradientn(name = paste("Confirmed/Probable Deaths"),
+                                      colors = greens,
+                                      labels = comma)
+#Outline all counties, after filling.
+choro <- choro + geom_polygon(counties_mapping,
+                              mapping = aes(x = long, y = lat, group = group),
+                              fill = NA, color = "white", size = 0.25)
+      
+choro <- choro + coord_map(projection = "albers", lat0 = 39, lat1 = 45) + theme_map()
+
+#Deets
+choro <- choro + theme(plot.title = element_text(face = "bold", size = 20),
+                       plot.caption = element_text(hjust = 0, size = 12),
+                       legend.position = "bottom",
+                       legend.title = element_text(face = "bold", size = 12),
+                       legend.key.height = unit(1, "cm"),
+                       legend.key.width = unit(1.5, "cm"),
+                       legend.text = element_text(size = 10))
+choro
+```
+
+##
+
+Here is a sample table for comparing NC and its counties.  In the app, this can be displayed for the US and states, or for any state and its respective counties.  More metrics are included.
+
+```{r Table, echo = FALSE}
+
+#NC Data from yesterday.
+nc_table = data.frame("County" = "North Carolina",
+                      "Cases" = nc_corona[nc_corona$Date == yesterday & nc_corona$Type == "Cases",][[3]],
+                      "Deaths" = nc_corona[nc_corona$Date == yesterday & nc_corona$Type == "Deaths",][[3]])
+
+nc_table <- rbind(nc_table,
+                  counties_corona %>%
+                    select(-2) %>%
+                    mutate(County = paste(County, "County")))
+
+#Populations.
+population <- read.csv("https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv")
+population <- population %>%
+  filter(STNAME == "North Carolina") %>%
+  select(7, 19) %>%
+  `colnames<-`(c("County", "Population"))
+
+
+nc_table <- merge(population,
+                  nc_table,
+                  by = "County")
+
+nc_table$Cases_resulting_in_Death = paste(round(nc_table$Deaths * 100 / nc_table$Cases, 2),
+                                          "%",
+                                          sep = "")
+
+nc_table <- nc_table[order(-nc_table$Cases), ]
+rownames(nc_table) <- nc_table$County
+head(nc_table %>% select(-1), 15)
+```
+
+##
+
+USA, County, State, and Territory Data: 
+
+[Data from The New York Times, based on reports from state and local health agencies.](https://github.com/nytimes/covid-19-data)
+
+NC and Counties Population:
+
+[County Population Totals: 2010-2019](https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv)
+
+App Code:
+
+[GitHub Repository](https://github.com/HumanRickshaw/Coronavirus_Visualization)
+
+Questions? Comments?
+
+rohan.lewis@gmail.com
+
+
