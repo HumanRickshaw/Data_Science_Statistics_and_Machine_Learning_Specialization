@@ -26,8 +26,8 @@
 
 ### Project 4
 
-[US Coronavirus Presentation (Under Construction)]()
+[US Coronavirus Presentation](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Developing_Data_Products_IV.html)
 
-[US Coronavirus Visualization (Under Construction)](https://humanrickshaw.shinyapps.io/US_Coronavirus_Visualization/)
+[US Coronavirus Visualization](https://humanrickshaw.shinyapps.io/US_Coronavirus_Visualization/)
 
 ## [Data Science Capstone](https://www.coursera.org/learn/data-science-project)
