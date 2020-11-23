@@ -1,0 +1,743 @@
+---
+title: "Data Science Capstone"
+subtitle: "Exploratory Data Analysis"
+author: "Rohan Lewis"
+date: "11/23/2020"
+output:
+  html_document :
+    fig_height : 5
+    fig_width : 8
+    highlight : espresso
+  
+---
+
+* * *
+
+# I.  Background
+
+This is an exploratory data analysis of blogs, news, and tweets provided by the course.
+
+This data will be eventually used for predicting the next word in a statement.
+
+See the Appendix for code.
+
+* * *
+
+```{r echo = FALSE, message = FALSE}
+
+knitr::opts_chunk$set(comment = NA)
+options("scipen" = 100)
+
+```
+
+```{r echo = FALSE, message = FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(ngram)
+library(readr)
+library(scales)
+library(shiny)
+library(tidyr)
+library(tokenizers)
+library(viridis)
+
+```
+
+```{r echo = FALSE, message = FALSE}
+
+blogs <- read_lines(file = "en_US.blogs.txt")
+news <- read_lines(file = "en_US.news.txt")
+tweets <- read_lines(file = "en_US.twitter.txt")
+
+```
+
+```{r echo = FALSE, message = FALSE}
+
+#This function will determine the total number of lines and the number of words and characters from each line.
+words_chars <- function(many_lines){
+  
+  #Total Number of lines.
+  total_lines <- length(many_lines)
+  
+  temp_df <- data.frame("Lines" = many_lines)
+
+  #Number of words in each line.
+  words <- apply(temp_df, 1, wordcount)
+  #Number of characters in each line.
+  chars <- apply(temp_df, 1, nchar)
+  
+  return(list(total_lines, words, chars))
+}
+
+#This function will determine the total and average number of words and characters from all lines. 
+summary_stats <- function(info) {
+
+  lines <- info[[1]]
+  words <- info[[2]]
+  chars <- info[[3]]
+  
+  num_words <- sum(words)
+  avg_words <- round(num_words / lines, 1)
+  
+  num_chars <- sum(chars)
+  avg_chars <- round(num_chars / lines, 1)
+  
+  return(list(lines, num_words, avg_words, num_chars, avg_chars))
+}
+
+#This function will create a summary statement.
+summary_statement <- function(label1, label2, summary_info) {
+
+  lines <- summary_info[[1]]
+  total_words <- summary_info[[2]]
+  avg_words <- summary_info[[3]]
+  total_chars <- summary_info[[4]]
+  avg_chars <- summary_info[[5]]
+  
+  statement <- paste("There are",
+                     prettyNum(lines, big.mark = ","),
+                     label1,
+                     "in the file.")
+  
+  total_statement <- paste("There are a total of",
+                           prettyNum(total_words, big.mark = ","),
+                           "words and",
+                           prettyNum(total_chars, big.mark = ","),
+                           "characters in the file.")
+  
+  avg_statement <- paste("On average, each",
+                         label2,
+                         "in the file has",
+                         prettyNum(avg_words, big.mark = ","),
+                         "words and",
+                         prettyNum(avg_chars, big.mark = ","),
+                         "characters.")
+
+  cat(paste(statement,
+            total_statement,
+            avg_statement,
+            sep = "\n"))
+}
+
+#This function returns a table of the frequency of all words in a file, in descending order.
+word_frequency <- function(many_lines, summary_info) {
+
+  total_words <- summary_info[[2]]
+  
+  df <- data.frame(sort(table(tokenize_words(toString(many_lines))), decreasing = T)) %>%
+    `colnames<-`(c("Word", "Frequency"))
+  
+  top_twenty <- sum(df[1:20, "Frequency"])
+  word_percent <- paste(round(top_twenty * 100 / total_words, 1), "%", sep = "")
+  
+  cat(paste(word_percent,
+            "of the total words are from the top 20."))
+  
+  df <- df[1:20,] %>%
+    mutate(Frequency = prettyNum(Frequency, big.mark = ","))
+  
+  return(df)
+}
+```
+
+```{r echo = FALSE, message = FALSE}
+
+#Splits data into two parts.  The histogram is further split into two halves.
+
+#Histogram
+histogram_helper <- function(data_label, df, limit_1, limit_2, bins_1, bins_2, wc, title_shift){
+  
+  #Plural.
+  label_plural = paste(data_label, "s", sep = "")
+  #Main Title.
+  title = paste("Distribution of",
+                wc,
+                "Count per",
+                data_label)
+  
+  #The left half is where the vast majority of data is located.
+  g1 <- ggplot(mapping = aes(x = df[df$Item < limit_1 + 1,]))
+  g1 <- g1 + geom_histogram(bins = bins_1, color = "white", fill = "grey31")
+  
+  #Titles and Axes.
+  g1 <- g1 + ggtitle("")
+  g1 <- g1 + scale_x_continuous(name = paste(wc, "Count"), breaks = pretty_breaks(), labels = comma)
+  g1 <- g1 + scale_y_continuous(name = paste("Number of", label_plural), labels = comma)
+  
+  #Modify labels and text.
+  g1 <- g1 + theme(plot.title = element_text(size = 14, face = "bold"),
+                   axis.text.x = element_text(size = 10),
+                   axis.title.x = element_text(size = 12, face = "bold"),
+                   axis.text.y = element_text(size = 10),
+                   axis.title.y = element_text(size = 12, face = "bold"))
+  
+  #The right half contains most of the right skew.
+  g2 <- ggplot(mapping = aes(x = df[df$Item > limit_1 & df$Item < limit_2 + 1,]))
+  g2 <- g2 + geom_histogram(bins = bins_2, color = "white", fill = "grey31")
+  
+  #Titles and Axes.
+  g2 <- g2 + ggtitle(title)
+  g2 <- g2 + scale_x_continuous(name = paste(wc, "Count"),
+                                breaks = c(limit_1, (2 * limit_1 + limit_2) / 3,
+                                           (limit_1 + 2 * limit_2) / 3, limit_2),
+                                labels = comma)
+  g2 <- g2 + scale_y_continuous(name = "", labels = comma)
+  
+  #Modify labels and text.
+  g2 <- g2 + theme(plot.title = element_text(hjust = title_shift, size = 14, face = "bold"),
+                   axis.text.x = element_text(size = 10),
+                   axis.title.x = element_text(size = 12, face = "bold"),
+                   axis.text.y = element_text(size = 10),
+                   axis.title.y = element_text(size = 12, face = "bold"))
+
+  #Combine two halves.    
+  grid.arrange(g1, g2, layout_matrix = matrix(c(1, 2), ncol = 2))
+
+  #The remaining extreme right skew is printed out.
+  cat(paste("Remaining",
+          tolower(wc),
+          "counts in",
+          tolower(label_plural),
+          "are: "))
+
+  sort(df[df$Item > limit_2,])
+}
+
+```
+
+* * *
+
+# II.  Data
+
+For each of Blogs, News, and Tweets, the following information is provided:
+
+<ol type = "1">
+  <li>A summary of the data.</li>
+  <li>Word count distribution.</li>
+  <li>Character count distribution.</li>
+  <li>A list of the most common twenty words in the document.</li>
+</ol>
+
+* * *
+
+## A.  Blogs
+
+### 1.  Summary
+
+```{r echo = FALSE, message = FALSE}
+
+info_b <- words_chars(blogs)
+
+summary_info_b <- summary_stats(info_b)
+
+summary_statement("blogs", "blog", summary_info_b)
+
+```
+
+### 2.  Word Distribution
+
+```{r echo = FALSE, message = FALSE}
+
+df <- data.frame("Item" = info_b[[2]])
+
+histogram_helper("Blog", df, 250, 1000, 25, 25, "Word", 25)
+
+```
+
+### 3.  Character Distribution
+
+```{r echo = FALSE, message = FALSE}
+
+df <- data.frame("Item" = info_b[[3]])
+
+histogram_helper("Blog", df, 1500, 4500, 30, 30, "Character", 5.5)
+```
+
+### 4.  Most Common Words
+
+```{r echo = FALSE, message = FALSE}
+
+word_frequency(blogs, summary_info_b)
+
+```
+
+* * *
+
+## B.  News
+
+### 1.  Summary
+
+```{r echo = FALSE, message = FALSE}
+
+info_n <- words_chars(news)
+
+summary_info_n <- summary_stats(info_n)
+
+summary_statement("news texts", "news text", summary_info_n)
+
+```
+
+### 2.  Word Distribution
+
+```{r echo = FALSE, message = FALSE}
+
+df <- data.frame("Item" = info_n[[2]])
+
+histogram_helper("News Text", df, 150, 450, 25, 30, "Word", 4.5)
+
+```
+
+### 3.  Character Distribution
+
+```{r echo = FALSE, message = FALSE}
+
+df <- data.frame("Item" = info_n[[3]])
+
+histogram_helper("News Text", df, 800, 2300, 20, 30, "Character", 2.7)
+
+```
+
+### 4.  Word Frequencies
+
+```{r echo = FALSE, message = FALSE}
+
+word_frequency(news, summary_info_n)
+
+```
+
+* * *
+
+## C.  Tweets
+
+### 1.  Summary
+
+```{r echo = FALSE, message = FALSE}
+
+info_t <- words_chars(tweets)
+
+summary_info_t <- summary_stats(info_t)
+
+summary_statement("tweets", "tweet", summary_info_t)
+
+```
+
+### 2.  Word Distribution
+
+```{r echo = FALSE, message = FALSE}
+
+df <- data.frame("Item" = info_t[[2]])
+
+histogram_helper("Tweet", df, 32, 44, 32, 12, "Word", 22)
+
+```
+
+### 3.  Character Distribution
+
+```{r echo = FALSE, message = FALSE}
+
+df <- data.frame("Item" = info_t[[3]])
+
+#Main Title.
+title = paste("Distribution of Character Count per Tweet")
+  
+g <- ggplot(mapping = aes(x = df$Item))
+g <- g + geom_histogram(bins = 35, color = "white", fill = "grey31")
+  
+#Titles and Axes.
+g <- g + ggtitle(title)
+g <- g + scale_x_continuous(name = paste("Character Count"), labels = comma)
+g <- g + scale_y_continuous(name = paste("Number of Tweets"), labels = comma)
+  
+#Modify labels and text.
+g <- g + theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+               axis.text.x = element_text(size = 10),
+               axis.title.x = element_text(size = 12, face = "bold"),
+               axis.text.y = element_text(size = 10),
+               axis.title.y = element_text(size = 12, face = "bold"))
+g
+
+```
+
+### 4.  Word Frequencies
+
+```{r echo = FALSE, message = FALSE}
+
+word_frequency(tweets, summary_info_t)
+
+```
+
+* * *
+
+# III.  Preliminary Analysis
+
+All three data files have similar right skewed distributions of words and characters.  Tweets is slightly different as there was a [140 character maximum](https://developer.twitter.com/en/docs/counting-characters) per tweet.
+
+The top 20 words for each data file are extremely similar, and account for a similar respective proportion for each data file.
+
+To predict the next word for an input statement, the string will be run for each line in the three data files.  If it matches, the next word will be saved.  A frequency table will be made for all the words saved.
+
+* * *
+
+# Appendix
+
+* * *
+
+### Setup
+
+```{r eval = FALSE}
+
+knitr::opts_chunk$set(comment = NA)
+options("scipen" = 100)
+
+```
+
+### Packages
+
+```{r eval = FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(ngram)
+library(readr)
+library(scales)
+library(shiny)
+library(tidyr)
+library(tokenizers)
+library(viridis)
+
+```
+
+### Read Files
+
+```{r eval = FALSE}
+
+blogs <- read_lines(file = "en_US.blogs.txt")
+news <- read_lines(file = "en_US.news.txt")
+tweets <- read_lines(file = "en_US.twitter.txt")
+
+```
+
+###  Helper Functions
+
+```{r eval = FALSE}
+
+#This function will determine the total number of lines and the number of words and characters from each line.
+words_chars <- function(many_lines){
+  
+  #Total Number of lines.
+  total_lines <- length(many_lines)
+  
+  temp_df <- data.frame("Lines" = many_lines)
+
+  #Number of words in each line.
+  words <- apply(temp_df, 1, wordcount)
+  #Number of characters in each line.
+  chars <- apply(temp_df, 1, nchar)
+  
+  return(list(total_lines, words, chars))
+}
+
+```
+
+```{r eval = FALSE}
+
+#This function will determine the total and average number of words and characters from all lines. 
+summary_stats <- function(info) {
+
+  lines <- info[[1]]
+  words <- info[[2]]
+  chars <- info[[3]]
+  
+  num_words <- sum(words)
+  avg_words <- round(num_words / lines, 1)
+  
+  num_chars <- sum(chars)
+  avg_chars <- round(num_chars / lines, 1)
+  
+  return(list(lines, num_words, avg_words, num_chars, avg_chars))
+}
+
+```
+
+```{r eval = FALSE}
+
+#This function will create a summary statement.
+summary_statement <- function(label1, label2, summary_info) {
+
+  lines <- summary_info[[1]]
+  total_words <- summary_info[[2]]
+  avg_words <- summary_info[[3]]
+  total_chars <- summary_info[[4]]
+  avg_chars <- summary_info[[5]]
+  
+  statement <- paste("There are",
+                     prettyNum(lines, big.mark = ","),
+                     label1,
+                     "in the file.")
+  
+  total_statement <- paste("There are a total of",
+                           prettyNum(total_words, big.mark = ","),
+                           "words and",
+                           prettyNum(total_chars, big.mark = ","),
+                           "characters in the file.")
+  
+  avg_statement <- paste("On average, each",
+                         label2,
+                         "in the file has",
+                         prettyNum(avg_words, big.mark = ","),
+                         "words and",
+                         prettyNum(avg_chars, big.mark = ","),
+                         "characters.")
+
+  cat(paste(statement,
+            total_statement,
+            avg_statement,
+            sep = "\n"))
+}
+
+```
+
+```{r eval = FALSE}
+
+#This function returns a table of the frequency of all words in a file, in descending order.
+word_frequency <- function(many_lines, summary_info) {
+
+  total_words <- summary_info[[2]]
+  
+  df <- data.frame(sort(table(tokenize_words(toString(many_lines))), decreasing = T)) %>%
+    `colnames<-`(c("Word", "Frequency"))
+  
+  top_twenty <- sum(df[1:20, "Frequency"])
+  word_percent <- paste(round(top_twenty * 100 / total_words, 1), "%", sep = "")
+  
+  cat(paste(word_percent,
+            "of the total words are from the top 20."))
+  
+  df <- df[1:20,] %>%
+    mutate(Frequency = prettyNum(Frequency, big.mark = ","))
+  
+  return(df)
+}
+```
+
+```{r eval = FALSE}
+
+#Splits data into two parts.  The histogram is further split into two halves.
+
+#Histogram
+histogram_helper <- function(data_label, df, limit_1, limit_2, bins_1, bins_2, wc, title_shift){
+  
+  #Plural.
+  label_plural = paste(data_label, "s", sep = "")
+  #Main Title.
+  title = paste("Distribution of",
+                wc,
+                "Count per",
+                data_label)
+  
+  #The left half is where the vast majority of data is located.
+  g1 <- ggplot(mapping = aes(x = df[df$Item < limit_1 + 1,]))
+  g1 <- g1 + geom_histogram(bins = bins_1, color = "white", fill = "grey31")
+  
+  #Titles and Axes.
+  g1 <- g1 + ggtitle("")
+  g1 <- g1 + scale_x_continuous(name = paste(wc, "Count"), breaks = pretty_breaks(), labels = comma)
+  g1 <- g1 + scale_y_continuous(name = paste("Number of", label_plural), labels = comma)
+  
+  #Modify labels and text.
+  g1 <- g1 + theme(plot.title = element_text(size = 14, face = "bold"),
+                   axis.text.x = element_text(size = 10),
+                   axis.title.x = element_text(size = 12, face = "bold"),
+                   axis.text.y = element_text(size = 10),
+                   axis.title.y = element_text(size = 12, face = "bold"))
+  
+  #The right half contains most of the right skew.
+  g2 <- ggplot(mapping = aes(x = df[df$Item > limit_1 & df$Item < limit_2 + 1,]))
+  g2 <- g2 + geom_histogram(bins = bins_2, color = "white", fill = "grey31")
+  
+  #Titles and Axes.
+  g2 <- g2 + ggtitle(title)
+  g2 <- g2 + scale_x_continuous(name = paste(wc, "Count"),
+                                breaks = c(limit_1, (2 * limit_1 + limit_2) / 3,
+                                           (limit_1 + 2 * limit_2) / 3, limit_2),
+                                labels = comma)
+  g2 <- g2 + scale_y_continuous(name = "", labels = comma)
+  
+  #Modify labels and text.
+  g2 <- g2 + theme(plot.title = element_text(hjust = title_shift, size = 14, face = "bold"),
+                   axis.text.x = element_text(size = 10),
+                   axis.title.x = element_text(size = 12, face = "bold"),
+                   axis.text.y = element_text(size = 10),
+                   axis.title.y = element_text(size = 12, face = "bold"))
+
+  #Combine two halves.    
+  grid.arrange(g1, g2, layout_matrix = matrix(c(1, 2), ncol = 2))
+
+  #The remaining extreme right skew is printed out.
+  cat(paste("Remaining",
+          tolower(wc),
+          "counts in",
+          tolower(label_plural),
+          "are: "))
+
+  sort(df[df$Item > limit_2,])
+}
+
+```
+
+* * *
+
+# II.  Data
+
+* * *
+
+## A.  Blogs
+
+### 1.  Summary
+
+```{r eval = FALSE}
+
+info_b <- words_chars(blogs)
+
+summary_info_b <- summary_stats(info_b)
+
+summary_statement("blogs", "blog", summary_info_b)
+
+```
+
+### 2.  Word Distribution
+
+```{r eval = FALSE}
+
+df <- data.frame("Item" = info_b[[2]])
+
+histogram_helper("Blog", df, 250, 1000, 25, 25, "Word", 25)
+
+```
+
+### 3.  Character Distribution
+
+```{r eval = FALSE}
+
+df <- data.frame("Item" = info_b[[3]])
+
+histogram_helper("Blog", df, 1500, 4500, 30, 30, "Character", 5.5)
+```
+
+### 4.  Most Common Words
+
+```{r eval = FALSE}
+
+word_frequency(blogs, summary_info_b)
+
+```
+
+* * *
+
+## B.  News
+
+### 1.  Summary
+
+```{r eval = FALSE}
+
+info_n <- words_chars(news)
+
+summary_info_n <- summary_stats(info_n)
+
+summary_statement("news texts", "news text", summary_info_n)
+
+```
+
+### 2.  Word Distribution
+
+```{r eval = FALSE}
+
+df <- data.frame("Item" = info_n[[2]])
+
+histogram_helper("News Text", df, 150, 450, 25, 30, "Word", 4.5)
+
+```
+
+### 3.  Character Distribution
+
+```{r eval = FALSE}
+
+df <- data.frame("Item" = info_n[[3]])
+
+histogram_helper("News Text", df, 800, 2300, 20, 30, "Character", 2.7)
+
+```
+
+### 4.  Word Frequencies
+
+```{r eval = FALSE}
+
+word_frequency(news, summary_info_n)
+
+```
+
+* * *
+
+## C.  Tweets
+
+### 1.  Summary
+
+```{r eval = FALSE}
+
+info_t <- words_chars(tweets)
+
+summary_info_t <- summary_stats(info_t)
+
+summary_statement("tweets", "tweet", summary_info_t)
+
+```
+
+### 2.  Word Distribution
+
+```{r eval = FALSE}
+
+df <- data.frame("Item" = info_t[[2]])
+
+histogram_helper("Tweet", df, 32, 44, 32, 12, "Word", 22)
+
+```
+
+### 3.  Character Distribution
+
+```{r eval = FALSE}
+
+df <- data.frame("Item" = info_t[[3]])
+
+#Main Title.
+title = paste("Distribution of Character Count per Tweet")
+  
+g <- ggplot(mapping = aes(x = df$Item))
+g <- g + geom_histogram(bins = 35, color = "white", fill = "grey31")
+  
+#Titles and Axes.
+g <- g + ggtitle(title)
+g <- g + scale_x_continuous(name = paste("Character Count"), labels = comma)
+g <- g + scale_y_continuous(name = paste("Number of Tweets"), labels = comma)
+  
+#Modify labels and text.
+g <- g + theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+               axis.text.x = element_text(size = 10),
+               axis.title.x = element_text(size = 12, face = "bold"),
+               axis.text.y = element_text(size = 10),
+               axis.title.y = element_text(size = 12, face = "bold"))
+g
+
+```
+
+### 4.  Word Frequencies
+
+```{r eval = FALSE}
+
+word_frequency(tweets, summary_info_t)
+
+```
+
+* * *
