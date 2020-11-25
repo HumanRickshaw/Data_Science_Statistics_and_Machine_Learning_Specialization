@@ -33,3 +33,9 @@
 ## [Data Science Capstone](https://www.coursera.org/learn/data-science-project)
 
 [Exploratory Data Analysis](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone_I.html)
+
+[nGrams](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone_II.html)
+
+[Sentence Fragments and NLP I](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone_III.html)
+
+[Sentence Fragments and NLP II](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone_IIII.html)
