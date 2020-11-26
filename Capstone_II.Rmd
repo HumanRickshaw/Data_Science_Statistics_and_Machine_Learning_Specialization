@@ -1,0 +1,544 @@
+---
+title: "Data Science Capstone"
+subtitle: "nGrams"
+author: "Rohan Lewis"
+date: "11/26/2020"
+output:
+  html_document :
+    fig_height : 5
+    fig_width : 8
+    highlight : espresso
+  
+---
+
+* * *
+
+# I.  Background
+
+Continuing from the previous document, I am now exploring nGrams of the three files.
+
+Due to size limitations, only the first 25% of each dataset is being used.
+
+This data will be eventually used for predicting the next word in a statement.
+
+See the Appendix for code.
+
+* * *
+
+```{r setup, echo = FALSE, message = FALSE}
+
+knitr::opts_chunk$set(comment = NA)
+options("scipen" = 100)
+options(java.parameters = "-Xmx16g")
+
+```
+
+```{r packages, echo = FALSE, message = FALSE}
+
+library(dplyr)
+library(readr)
+library(RWeka)
+library(textclean)
+library(tm)
+
+```
+
+```{r read_files, echo = FALSE, message = FALSE}
+#Files are read.  First quarter is used.
+
+blogs <- read_lines(file = "en_US.blogs.txt")
+blogs <- blogs[0:length(blogs) / 4]
+
+news <- read_lines(file = "en_US.news.txt")
+news <- news[0:length(news) / 4]
+
+tweets <- read_lines(file = "en_US.twitter.txt")
+tweets <- tweets[0:length(tweets) / 4]
+
+```
+
+```{r helper_functions, echo = FALSE, message = FALSE}
+
+#Function:
+#"’" is replaced with "'", contractions are expanded.
+#"U.S." is replaced with "US".
+#"a.m." is replaced with "am".
+#"p.m." is replaced with "pm".
+replacement <- function(data) {
+  
+  temp <- replace_contraction(gsub("’", "'", data),
+                              contraction.key = lexicon::key_contractions)
+  temp <- gsub("U.S.", "US", temp)
+  temp <- gsub("a.m.", "am", temp)
+  temp <- gsub("p.m.", "pm", temp)
+  return(temp)
+}
+
+#This function will list ngrams for a specified n and file.
+n_gram_creator <- function(data, n) {
+  
+  n_grams = NGramTokenizer(data, Weka_control(min = n, max = n))
+  
+  return(n_grams)
+}
+
+
+
+#This function will create a Frequency dataframe of n_grams.
+df_freq_creator <- function(n_grams) {
+
+  df <- data.frame(sort(table(n_grams), decreasing = T)) %>%
+    `colnames<-`(c("nGram", "Frequency"))
+  
+  return(df)
+}
+
+```
+
+* * *
+
+# II. n-Gram Distributions
+
+Contractions have been expanded.
+
+## A. Blogs
+
+```{r blogs, echo = FALSE, message = FALSE}
+
+blogs <- replacement(blogs)
+
+```
+
+### 1. Trigrams
+
+```{r echo = FALSE, message = FALSE}
+
+blogs3 <- n_gram_creator(blogs, 3)
+
+df_freq_creator(blogs3)[1:10,]
+
+```
+
+### 2. 4-grams
+
+```{r echo = FALSE, message = FALSE}
+
+blogs4 <- n_gram_creator(blogs, 4)
+
+df_freq_creator(blogs4)[1:10,]
+
+```
+
+### 3. 5-grams
+
+```{r echo = FALSE, message = FALSE}
+
+blogs5 <- n_gram_creator(blogs, 5)
+
+df_freq_creator(blogs5)[1:10,]
+
+```
+
+### 4. 6-grams
+
+```{r echo = FALSE, message = FALSE}
+
+blogs6 <- n_gram_creator(blogs, 6)
+
+df_freq_creator(blogs6)[1:10,]
+
+```
+
+## B. News
+
+```{r news, echo = FALSE, message = FALSE}
+
+news <- replacement(news)
+
+```
+
+### 1. Trigrams
+
+```{r echo = FALSE, message = FALSE}
+
+news3 <- n_gram_creator(news, 3)
+
+df_freq_creator(news3)[1:10,]
+
+```
+
+### 2. 4-grams
+
+```{r echo = FALSE, message = FALSE}
+
+news4 <- n_gram_creator(news, 4)
+
+df_freq_creator(news4)[1:10,]
+
+```
+
+### 3. 5-grams
+
+```{r echo = FALSE, message = FALSE}
+
+news5 <- n_gram_creator(news, 5)
+
+df_freq_creator(news5)[1:10,]
+
+```
+
+### 4. 6-grams
+
+```{r echo = FALSE, message = FALSE}
+
+news6 <- n_gram_creator(news, 6)
+
+df_freq_creator(news6)[1:10,]
+
+```
+
+## C. Tweets
+
+```{r tweets, echo = FALSE, message = FALSE}
+
+tweets <- replacement(tweets)
+
+```
+
+### 1. Trigrams
+
+```{r echo = FALSE, message = FALSE}
+
+tweets3 <- n_gram_creator(tweets, 3)
+
+df_freq_creator(tweets3)[1:10,]
+
+```
+
+### 2. 4-grams
+
+```{r echo = FALSE, message = FALSE}
+
+tweets4 <- n_gram_creator(tweets, 4)
+
+df_freq_creator(tweets4)[1:10,]
+
+```
+
+### 3. 5-grams
+
+```{r echo = FALSE, message = FALSE}
+
+tweets5 <- n_gram_creator(tweets, 5)
+
+df_freq_creator(tweets5)[1:10,]
+
+```
+
+### 4. 6-grams
+
+```{r echo = FALSE, message = FALSE}
+
+tweets6 <- n_gram_creator(tweets, 6)
+
+df_freq_creator(tweets6)[1:10,]
+
+```
+
+## D. All
+
+### 1. Trigrams
+
+```{r all, echo = FALSE, message = FALSE}
+
+df_freq_creator(c(blogs3, news3, tweets3))[1:10,]
+
+```
+
+### 2. 4-grams
+
+```{r echo = FALSE, message = FALSE}
+
+df_freq_creator(c(blogs4, news4, tweets4))[1:10,]
+
+```
+
+### 3. 5-grams
+
+```{r echo = FALSE, message = FALSE}
+
+df_freq_creator(c(blogs5, news5, tweets5))[1:10,]
+
+```
+
+### 4. 6-grams
+
+```{r echo = FALSE, message = FALSE}
+
+df_freq_creator(c(blogs6, news6, tweets6))[1:10,]
+
+```
+
+# Appendix
+
+* * *
+
+### Setup
+
+```{r eval = FALSE}
+
+knitr::opts_chunk$set(comment = NA)
+options("scipen" = 100)
+options(java.parameters = "-Xmx8g")
+
+```
+
+### Packages
+
+```{r eval = FALSE}
+
+library(dplyr)
+library(readr)
+library(RWeka)
+library(textclean)
+library(tm)
+
+```
+
+### Read Files
+
+```{r eval = FALSE}
+#Files are read.
+
+blogs <- read_lines(file = "en_US.blogs.txt")
+blogs <- blogs[0:length(blogs) / 4]
+
+news <- read_lines(file = "en_US.news.txt")
+news <- news[0:length(news) / 4]
+
+tweets <- read_lines(file = "en_US.twitter.txt")
+tweets <- tweets[0:length(tweets) / 4]
+
+```
+
+### Helper Functions
+
+```{r eval = FALSE}
+
+#Function:
+#"’" is replaced with "'", contractions are expanded.
+#"U.S." is replaced with "US".
+#"a.m." is replaced with "am".
+#"p.m." is replaced with "pm".
+replacement <- function(data) {
+  
+  temp <- replace_contraction(gsub("’", "'", data),
+                              contraction.key = lexicon::key_contractions)
+  temp <- gsub("U.S.", "US", temp)
+  temp <- gsub("a.m.", "am", temp)
+  temp <- gsub("p.m.", "pm", temp)
+  return(temp)
+}
+
+#This function will list ngrams for a specified n and file.
+n_gram_creator <- function(data, n) {
+  
+  n_grams = NGramTokenizer(data, Weka_control(min = n, max = n))
+  
+  return(n_grams)
+}
+
+
+
+#This function will create a Frequency dataframe of n_grams.
+df_freq_creator <- function(n_grams) {
+
+  df <- data.frame(sort(table(n_grams), decreasing = T)) %>%
+    `colnames<-`(c("nGram", "Frequency"))
+  
+  return(df)
+}
+
+```
+
+* * *
+
+# II. n-Gram Distributions
+
+## A. Blogs
+
+```{r eval = FALSE}
+
+blogs <- replacement(blogs)
+
+```
+
+### 1. Trigrams
+
+```{r eval = FALSE}
+
+blogs3 <- n_gram_creator(blogs, 3)
+
+df_freq_creator(blogs3)[1:10,]
+
+```
+
+### 2. 4-grams
+
+```{r eval = FALSE}
+
+blogs4 <- n_gram_creator(blogs, 4)
+
+df_freq_creator(blogs4)[1:10,]
+
+```
+
+### 3. 5-grams
+
+```{r eval = FALSE}
+
+blogs5 <- n_gram_creator(blogs, 5)
+
+df_freq_creator(blogs5)[1:10,]
+
+```
+
+### 4. 6-grams
+
+```{r eval = FALSE}
+
+blogs6 <- n_gram_creator(blogs, 6)
+
+df_freq_creator(blogs6)[1:10,]
+
+```
+
+## B. News
+
+```{r eval = FALSE}
+
+news <- replacement(news)
+
+```
+
+### 1. Trigrams
+
+```{r eval = FALSE}
+
+news3 <- n_gram_creator(news, 3)
+
+df_freq_creator(news3)[1:10,]
+
+```
+
+### 2. 4-grams
+
+```{r eval = FALSE}
+
+news4 <- n_gram_creator(news, 4)
+
+df_freq_creator(news4)[1:10,]
+
+```
+
+### 3. 5-grams
+
+```{r eval = FALSE}
+
+news5 <- n_gram_creator(news, 5)
+
+df_freq_creator(news5)[1:10,]
+
+```
+
+### 4. 6-grams
+
+```{r eval = FALSE}
+
+news6 <- n_gram_creator(news, 6)
+
+df_freq_creator(news6)[1:10,]
+
+```
+
+## C. Tweets
+
+```{r eval = FALSE}
+
+tweets <- replacement(tweets)
+
+```
+
+### 1. Trigrams
+
+```{r eval = FALSE}
+
+tweets3 <- n_gram_creator(tweets, 3)
+
+df_freq_creator(tweets3)[1:10,]
+
+```
+
+### 2. 4-grams
+
+```{r eval = FALSE}
+
+tweets4 <- n_gram_creator(tweets, 4)
+
+df_freq_creator(tweets4)[1:10,]
+
+```
+
+### 3. 5-grams
+
+```{r eval = FALSE}
+
+tweets5 <- n_gram_creator(tweets, 5)
+
+df_freq_creator(tweets5)[1:10,]
+
+```
+
+### 4. 6-grams
+
+```{r eval = FALSE}
+
+tweets6 <- n_gram_creator(tweets, 6)
+
+df_freq_creator(tweets6)[1:10,]
+
+```
+
+## D. All
+
+### 1. Trigrams
+
+```{r eval = FALSE}
+
+df_freq_creator(c(blogs3, news3, tweets3))[1:10,]
+
+```
+
+### 2. 4-grams
+
+```{r eval = FALSE}
+
+df_freq_creator(c(blogs4, news4, tweets4))[1:10,]
+
+```
+
+### 3. 5-grams
+
+```{r eval = FALSE}
+
+df_freq_creator(c(blogs5, news5, tweets5))[1:10,]
+
+```
+
+### 4. 6-grams
+
+```{r eval = FALSE}
+
+df_freq_creator(c(blogs6, news6, tweets6))[1:10,]
+
+```
