@@ -2,7 +2,7 @@
 title: "Data Science Capstone"
 subtitle: "Exploratory Data Analysis"
 author: "Rohan Lewis"
-date: "11/23/2020"
+date: "2020.11.23"
 output:
   html_document :
     fig_height : 5
