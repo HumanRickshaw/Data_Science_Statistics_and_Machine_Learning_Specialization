@@ -111,7 +111,7 @@ possibilities <- function(q_string){
     q_string <- paste(temp_str[(n-9):n], collapse = ' ')    
   }
 
-  while (nchar(q_string > 0)) {
+  while (nchar(q_string) > 0) {
 
     #Get next words from blogs, news, and tweets.
     q_words <- retrieve_next_words(q_string)
@@ -380,7 +380,7 @@ possibilities <- function(q_string){
     q_string <- paste(temp_str[(n-9):n], collapse = ' ')    
   }
 
-  while (nchar(q_string > 0)) {
+  while (nchar(q_string) > 0) {
 
     #Get next words from blogs, news, and tweets.
     q_words <- retrieve_next_words(q_string)
