@@ -344,8 +344,6 @@ replacement <- function(data) {
 #Function returns the word immediately after a string for all lines that contain the string."
 retrieve_next_words <- function(input_string) {
 
-  #Cleanup.
-  input_string <- replacement(input_string)
   #Word length of input string.
   n <- length(strsplit(input_string, " ")[[1]])
   #Final list.
@@ -369,10 +367,62 @@ retrieve_next_words <- function(input_string) {
 
 
 
+possibilities <- function(q_string){
+  
+  #Cleanup.
+  q_string <- replacement(q_string)
+  #Word length of input string.
+  temp_str <- str_split(q_string, " ")[[1]]
+  n <- length(temp_str)
+  
+  #Start with last 10 words.
+  if (n > 10) {
+    q_string <- paste(temp_str[(n-9):n], collapse = ' ')    
+  }
+
+  while (nchar(q_string > 0)) {
+
+    #Get next words from blogs, news, and tweets.
+    q_words <- retrieve_next_words(q_string)
+    
+    #If there is at least one word...
+    if (length(q_words > 0)) {
+      
+      #Return at most 10 entries of the frequency table.
+      df_freq <- df_pred_creator(q_words)
+      
+      if (dim(df_freq)[1] > 10){
+        return(df_freq[1:10,])
+      } else {
+        return(df_freq)
+      }
+      
+    #No words means try again, with a shortened string.  
+    } else {
+      #Shorten string by removing left most word.
+      q_string <- substring(q_string, str_locate(q_string, " ")[1]+1)
+    }
+  }
+  #All string lengths failed to match.
+  return("NO MATCHES")
+}
+
+
+
 #This function will create a Frequency dataframe from next_words.
 df_pred_creator <- function(next_words) {
 
-  df <- data.frame(sort(table(next_words), decreasing = T)) %>%
+  #Convert sorted table to dataframe.
+  df <- as.data.frame(sort(table(next_words), decreasing = T))
+  
+  #If there is only one row, change to two columns from index and single column.
+  if (length(next_words) == 1) {
+    df <- cbind(newColName = rownames(df), df)
+    rownames(df) <- 1:nrow(df)
+  }
+  
+  #Change Column Names.
+  df <- df %>%
     `colnames<-`(c("Possible Next Word", "Frequency"))
   
   return(df)
