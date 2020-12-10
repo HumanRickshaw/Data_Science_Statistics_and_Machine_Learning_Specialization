@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html>
 
@@ -627,92 +627,148 @@ summary {
 <h1>Appendix</h1>
 <hr />
 <div id="setup" class="section level2">
-<h2>Setup</h2>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">comment =</span> <span class="ot">NA</span>)</span>
+    <h2>Setup</h2>
+    <div class="sourceCode" id="cb13">
+        <pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">comment =</span> <span class="ot">NA</span>)</span>
 <span id="cb13-2"><a href="#cb13-2"></a><span class="kw">options</span>(<span class="st">&quot;scipen&quot;</span> =<span class="st"> </span><span class="dv">100</span>)</span>
-<span id="cb13-3"><a href="#cb13-3"></a><span class="kw">options</span>(<span class="dt">java.parameters =</span> <span class="st">&quot;-Xmx4g&quot;</span>)</span></code></pre></div>
-<div id="packages" class="section level3">
-<h3>Packages</h3>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">library</span>(dplyr)</span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="kw">options</span>(<span class="dt">java.parameters =</span> <span class="st">&quot;-Xmx4g&quot;</span>)</span></code></pre>
+    </div>
+    <div id="packages" class="section level3">
+        <h3>Packages</h3>
+        <div class="sourceCode" id="cb14">
+            <pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">library</span>(dplyr)</span>
 <span id="cb14-2"><a href="#cb14-2"></a><span class="kw">library</span>(readr)</span>
 <span id="cb14-3"><a href="#cb14-3"></a><span class="kw">library</span>(RWeka)</span>
 <span id="cb14-4"><a href="#cb14-4"></a><span class="kw">library</span>(stringr)</span>
 <span id="cb14-5"><a href="#cb14-5"></a><span class="kw">library</span>(textclean)</span>
-<span id="cb14-6"><a href="#cb14-6"></a><span class="kw">library</span>(tm)</span></code></pre></div>
-</div>
-<div id="read-files" class="section level3">
-<h3>Read Files</h3>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">#Files are read.</span></span>
+<span id="cb14-6"><a href="#cb14-6"></a><span class="kw">library</span>(tm)</span></code></pre>
+        </div>
+    </div>
+    <div id="read-files" class="section level3">
+        <h3>Read Files</h3>
+        <div class="sourceCode" id="cb15">
+            <pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">#Files are read.</span></span>
 <span id="cb15-2"><a href="#cb15-2"></a></span>
 <span id="cb15-3"><a href="#cb15-3"></a>blogs &lt;-<span class="st"> </span><span class="kw">read_lines</span>(<span class="dt">file =</span> <span class="st">&quot;en_US.blogs.txt&quot;</span>)</span>
 <span id="cb15-4"><a href="#cb15-4"></a></span>
 <span id="cb15-5"><a href="#cb15-5"></a>news &lt;-<span class="st"> </span><span class="kw">read_lines</span>(<span class="dt">file =</span> <span class="st">&quot;en_US.news.txt&quot;</span>)</span>
 <span id="cb15-6"><a href="#cb15-6"></a></span>
-<span id="cb15-7"><a href="#cb15-7"></a>tweets &lt;-<span class="st"> </span><span class="kw">read_lines</span>(<span class="dt">file =</span> <span class="st">&quot;en_US.twitter.txt&quot;</span>)</span></code></pre></div>
+<span id="cb15-7"><a href="#cb15-7"></a>tweets &lt;-<span class="st"> </span><span class="kw">read_lines</span>(<span class="dt">file =</span> <span class="st">&quot;en_US.twitter.txt&quot;</span>)</span></code></pre>
+        </div>
+    </div>
+    <div id="helper-functions" class="section level3">
+        <h3>Helper Functions</h3>
+        <div class="sourceCode" id="cb1">
+            <pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">#Function:</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="co">#&quot;’&quot; is replaced with &quot;&#39;&quot;, contractions are expanded.</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="co">#&quot;U.S.&quot; is replaced with &quot;US&quot;.</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="co">#&quot;a.m.&quot; is replaced with &quot;am&quot;.</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="co">#&quot;p.m.&quot; is replaced with &quot;pm&quot;.</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>replacement &lt;-<span class="st"> </span><span class="cf">function</span>(data) {</span>
+<span id="cb1-7"><a href="#cb1-7"></a>  </span>
+<span id="cb1-8"><a href="#cb1-8"></a>  temp &lt;-<span class="st"> </span><span class="kw">replace_contraction</span>(<span class="kw">gsub</span>(<span class="st">&quot;’&quot;</span>, <span class="st">&quot;&#39;&quot;</span>, data),</span>
+<span id="cb1-9"><a href="#cb1-9"></a>                              <span class="dt">contraction.key =</span> lexicon<span class="op">::</span>key_contractions)</span>
+<span id="cb1-10"><a href="#cb1-10"></a>  temp &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;U.S.&quot;</span>, <span class="st">&quot;US&quot;</span>, temp)</span>
+<span id="cb1-11"><a href="#cb1-11"></a>  temp &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;a.m.&quot;</span>, <span class="st">&quot;am&quot;</span>, temp)</span>
+<span id="cb1-12"><a href="#cb1-12"></a>  temp &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;p.m.&quot;</span>, <span class="st">&quot;pm&quot;</span>, temp)</span>
+<span id="cb1-13"><a href="#cb1-13"></a>  <span class="kw">return</span>(temp)</span>
+<span id="cb1-14"><a href="#cb1-14"></a>}</span>
+<span id="cb1-15"><a href="#cb1-15"></a></span>
+<span id="cb1-16"><a href="#cb1-16"></a></span>
+<span id="cb1-17"><a href="#cb1-17"></a></span>
+<span id="cb1-18"><a href="#cb1-18"></a><span class="co">#Function returns the word immediately after a string for all lines that contain the string.&quot;</span></span>
+<span id="cb1-19"><a href="#cb1-19"></a>retrieve_next_words &lt;-<span class="st"> </span><span class="cf">function</span>(input_string) {</span>
+<span id="cb1-20"><a href="#cb1-20"></a></span>
+<span id="cb1-21"><a href="#cb1-21"></a>  <span class="co">#Word length of input string.</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a>  n &lt;-<span class="st"> </span><span class="kw">length</span>(<span class="kw">strsplit</span>(input_string, <span class="st">&quot; &quot;</span>)[[<span class="dv">1</span>]])</span>
+<span id="cb1-23"><a href="#cb1-23"></a>  <span class="co">#Final list.</span></span>
+<span id="cb1-24"><a href="#cb1-24"></a>  next_words &lt;-<span class="st"> </span><span class="ot">NULL</span></span>
+<span id="cb1-25"><a href="#cb1-25"></a>  </span>
+<span id="cb1-26"><a href="#cb1-26"></a>  <span class="cf">for</span> (bnt <span class="cf">in</span> bnts) {</span>
+<span id="cb1-27"><a href="#cb1-27"></a>    <span class="co">#Check if the string is in the line.</span></span>
+<span id="cb1-28"><a href="#cb1-28"></a>    <span class="cf">if</span>(<span class="kw">grepl</span>(input_string, bnt)) {</span>
+<span id="cb1-29"><a href="#cb1-29"></a>      <span class="co">#Find where in the line it is located.</span></span>
+<span id="cb1-30"><a href="#cb1-30"></a>      beginning &lt;-<span class="st"> </span><span class="kw">str_locate</span>(bnt, input_string)[<span class="dv">1</span>]</span>
+<span id="cb1-31"><a href="#cb1-31"></a>      <span class="co">#Start from where the string is, split by space, grab the next word.</span></span>
+<span id="cb1-32"><a href="#cb1-32"></a>      next_word &lt;-<span class="st"> </span><span class="kw">strsplit</span>(<span class="kw">substring</span>(bnt, beginning), <span class="st">&quot; &quot;</span>)[[<span class="dv">1</span>]][n<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb1-33"><a href="#cb1-33"></a>      <span class="co">#Get rid of non-alphanumeric.</span></span>
+<span id="cb1-34"><a href="#cb1-34"></a>      next_word &lt;-<span class="st"> </span><span class="kw">str_replace_all</span>(next_word, <span class="kw">regex</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">W+&quot;</span>), <span class="st">&quot;&quot;</span>)</span>
+<span id="cb1-35"><a href="#cb1-35"></a>      <span class="co">#Update final list.</span></span>
+<span id="cb1-36"><a href="#cb1-36"></a>      next_words &lt;-<span class="st"> </span><span class="kw">c</span>(next_words, next_word)</span>
+<span id="cb1-37"><a href="#cb1-37"></a>    }</span>
+<span id="cb1-38"><a href="#cb1-38"></a>  }</span>
+<span id="cb1-39"><a href="#cb1-39"></a>  <span class="kw">return</span>(next_words)</span>
+<span id="cb1-40"><a href="#cb1-40"></a>}</span>
+<span id="cb1-41"><a href="#cb1-41"></a></span>
+<span id="cb1-42"><a href="#cb1-42"></a></span>
+<span id="cb1-43"><a href="#cb1-43"></a></span>
+<span id="cb1-44"><a href="#cb1-44"></a>possibilities &lt;-<span class="st"> </span><span class="cf">function</span>(q_string){</span>
+<span id="cb1-45"><a href="#cb1-45"></a>  </span>
+<span id="cb1-46"><a href="#cb1-46"></a>  <span class="co">#Cleanup.</span></span>
+<span id="cb1-47"><a href="#cb1-47"></a>  q_string &lt;-<span class="st"> </span><span class="kw">replacement</span>(q_string)</span>
+<span id="cb1-48"><a href="#cb1-48"></a>  <span class="co">#Word length of input string.</span></span>
+<span id="cb1-49"><a href="#cb1-49"></a>  temp_str &lt;-<span class="st"> </span><span class="kw">str_split</span>(q_string, <span class="st">&quot; &quot;</span>)[[<span class="dv">1</span>]]</span>
+<span id="cb1-50"><a href="#cb1-50"></a>  n &lt;-<span class="st"> </span><span class="kw">length</span>(temp_str)</span>
+<span id="cb1-51"><a href="#cb1-51"></a>  </span>
+<span id="cb1-52"><a href="#cb1-52"></a>  <span class="co">#Start with last 10 words.</span></span>
+<span id="cb1-53"><a href="#cb1-53"></a>  <span class="cf">if</span> (n <span class="op">&gt;</span><span class="st"> </span><span class="dv">10</span>) {</span>
+<span id="cb1-54"><a href="#cb1-54"></a>    q_string &lt;-<span class="st"> </span><span class="kw">paste</span>(temp_str[(n<span class="dv">-9</span>)<span class="op">:</span>n], <span class="dt">collapse =</span> <span class="st">&#39; &#39;</span>)    </span>
+<span id="cb1-55"><a href="#cb1-55"></a>  }</span>
+<span id="cb1-56"><a href="#cb1-56"></a></span>
+<span id="cb1-57"><a href="#cb1-57"></a>  <span class="cf">while</span> (<span class="kw">nchar</span>(q_string <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)) {</span>
+<span id="cb1-58"><a href="#cb1-58"></a></span>
+<span id="cb1-59"><a href="#cb1-59"></a>    <span class="co">#Get next words from blogs, news, and tweets.</span></span>
+<span id="cb1-60"><a href="#cb1-60"></a>    q_words &lt;-<span class="st"> </span><span class="kw">retrieve_next_words</span>(q_string)</span>
+<span id="cb1-61"><a href="#cb1-61"></a>    </span>
+<span id="cb1-62"><a href="#cb1-62"></a>    <span class="co">#If there is at least one word...</span></span>
+<span id="cb1-63"><a href="#cb1-63"></a>    <span class="cf">if</span> (<span class="kw">length</span>(q_words <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)) {</span>
+<span id="cb1-64"><a href="#cb1-64"></a>      </span>
+<span id="cb1-65"><a href="#cb1-65"></a>      <span class="co">#Return at most 10 entries of the frequency table.</span></span>
+<span id="cb1-66"><a href="#cb1-66"></a>      df_freq &lt;-<span class="st"> </span><span class="kw">df_pred_creator</span>(q_words)</span>
+<span id="cb1-67"><a href="#cb1-67"></a>      </span>
+<span id="cb1-68"><a href="#cb1-68"></a>      <span class="cf">if</span> (<span class="kw">dim</span>(df_freq)[<span class="dv">1</span>] <span class="op">&gt;</span><span class="st"> </span><span class="dv">10</span>){</span>
+<span id="cb1-69"><a href="#cb1-69"></a>        <span class="kw">return</span>(df_freq[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>,])</span>
+<span id="cb1-70"><a href="#cb1-70"></a>      } <span class="cf">else</span> {</span>
+<span id="cb1-71"><a href="#cb1-71"></a>        <span class="kw">return</span>(df_freq)</span>
+<span id="cb1-72"><a href="#cb1-72"></a>      }</span>
+<span id="cb1-73"><a href="#cb1-73"></a>      </span>
+<span id="cb1-74"><a href="#cb1-74"></a>    <span class="co">#No words means try again, with a shortened string.  </span></span>
+<span id="cb1-75"><a href="#cb1-75"></a>    } <span class="cf">else</span> {</span>
+<span id="cb1-76"><a href="#cb1-76"></a>      <span class="co">#Shorten string by removing left most word.</span></span>
+<span id="cb1-77"><a href="#cb1-77"></a>      q_string &lt;-<span class="st"> </span><span class="kw">substring</span>(q_string, <span class="kw">str_locate</span>(q_string, <span class="st">&quot; &quot;</span>)[<span class="dv">1</span>]<span class="op">+</span><span class="dv">1</span>)</span>
+<span id="cb1-78"><a href="#cb1-78"></a>    }</span>
+<span id="cb1-79"><a href="#cb1-79"></a>  }</span>
+<span id="cb1-80"><a href="#cb1-80"></a>  <span class="co">#All string lengths failed to match.</span></span>
+<span id="cb1-81"><a href="#cb1-81"></a>  <span class="kw">return</span>(<span class="st">&quot;NO MATCHES&quot;</span>)</span>
+<span id="cb1-82"><a href="#cb1-82"></a>}</span>
+<span id="cb1-83"><a href="#cb1-83"></a></span>
+<span id="cb1-84"><a href="#cb1-84"></a></span>
+<span id="cb1-85"><a href="#cb1-85"></a></span>
+<span id="cb1-86"><a href="#cb1-86"></a><span class="co">#This function will create a Frequency dataframe from next_words.</span></span>
+<span id="cb1-87"><a href="#cb1-87"></a>df_pred_creator &lt;-<span class="st"> </span><span class="cf">function</span>(next_words) {</span>
+<span id="cb1-88"><a href="#cb1-88"></a></span>
+<span id="cb1-89"><a href="#cb1-89"></a>  <span class="co">#Convert sorted table to dataframe.</span></span>
+<span id="cb1-90"><a href="#cb1-90"></a>  df &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">sort</span>(<span class="kw">table</span>(next_words), <span class="dt">decreasing =</span> T))</span>
+<span id="cb1-91"><a href="#cb1-91"></a>  </span>
+<span id="cb1-92"><a href="#cb1-92"></a>  <span class="co">#If there is only one row, change to two columns from index and single column.</span></span>
+<span id="cb1-93"><a href="#cb1-93"></a>  <span class="cf">if</span> (<span class="kw">length</span>(next_words) <span class="op">==</span><span class="st"> </span><span class="dv">1</span>) {</span>
+<span id="cb1-94"><a href="#cb1-94"></a>    df &lt;-<span class="st"> </span><span class="kw">cbind</span>(<span class="dt">newColName =</span> <span class="kw">rownames</span>(df), df)</span>
+<span id="cb1-95"><a href="#cb1-95"></a>    <span class="kw">rownames</span>(df) &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(df)</span>
+<span id="cb1-96"><a href="#cb1-96"></a>  }</span>
+<span id="cb1-97"><a href="#cb1-97"></a>  </span>
+<span id="cb1-98"><a href="#cb1-98"></a>  <span class="co">#Change Column Names.</span></span>
+<span id="cb1-99"><a href="#cb1-99"></a>  df &lt;-<span class="st"> </span>df <span class="op">%&gt;%</span></span>
+<span id="cb1-100"><a href="#cb1-100"></a><span class="st">    `</span><span class="dt">colnames&lt;-</span><span class="st">`</span>(<span class="kw">c</span>(<span class="st">&quot;Possible Next Word&quot;</span>, <span class="st">&quot;Frequency&quot;</span>))</span>
+<span id="cb1-101"><a href="#cb1-101"></a>  </span>
+<span id="cb1-102"><a href="#cb1-102"></a>  <span class="kw">return</span>(df)</span>
+<span id="cb1-103"><a href="#cb1-103"></a>}</span>
+<span id="cb1-104"><a href="#cb1-104"></a></span>
+<span id="cb1-105"><a href="#cb1-105"></a><span class="kw">print</span>(<span class="st">&quot;SETUP COMPLETE&quot;</span>)</span></code></pre></div>
 </div>
-<div id="helper-functions" class="section level3">
-<h3>Helper Functions</h3>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">#Function:</span></span>
-<span id="cb16-2"><a href="#cb16-2"></a><span class="co">#&quot;’&quot; is replaced with &quot;&#39;&quot;, contractions are expanded.</span></span>
-<span id="cb16-3"><a href="#cb16-3"></a><span class="co">#&quot;U.S.&quot; is replaced with &quot;US&quot;.</span></span>
-<span id="cb16-4"><a href="#cb16-4"></a><span class="co">#&quot;a.m.&quot; is replaced with &quot;am&quot;.</span></span>
-<span id="cb16-5"><a href="#cb16-5"></a><span class="co">#&quot;p.m.&quot; is replaced with &quot;pm&quot;.</span></span>
-<span id="cb16-6"><a href="#cb16-6"></a>replacement &lt;-<span class="st"> </span><span class="cf">function</span>(data) {</span>
-<span id="cb16-7"><a href="#cb16-7"></a>  </span>
-<span id="cb16-8"><a href="#cb16-8"></a>  temp &lt;-<span class="st"> </span><span class="kw">replace_contraction</span>(<span class="kw">gsub</span>(<span class="st">&quot;’&quot;</span>, <span class="st">&quot;&#39;&quot;</span>, data),</span>
-<span id="cb16-9"><a href="#cb16-9"></a>                              <span class="dt">contraction.key =</span> lexicon<span class="op">::</span>key_contractions)</span>
-<span id="cb16-10"><a href="#cb16-10"></a>  temp &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;U.S.&quot;</span>, <span class="st">&quot;US&quot;</span>, temp)</span>
-<span id="cb16-11"><a href="#cb16-11"></a>  temp &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;a.m.&quot;</span>, <span class="st">&quot;am&quot;</span>, temp)</span>
-<span id="cb16-12"><a href="#cb16-12"></a>  temp &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;p.m.&quot;</span>, <span class="st">&quot;pm&quot;</span>, temp)</span>
-<span id="cb16-13"><a href="#cb16-13"></a>  <span class="kw">return</span>(temp)</span>
-<span id="cb16-14"><a href="#cb16-14"></a>}</span>
-<span id="cb16-15"><a href="#cb16-15"></a></span>
-<span id="cb16-16"><a href="#cb16-16"></a></span>
-<span id="cb16-17"><a href="#cb16-17"></a></span>
-<span id="cb16-18"><a href="#cb16-18"></a><span class="co">#Function returns the word immediately after a string for all lines that contain the string.&quot;</span></span>
-<span id="cb16-19"><a href="#cb16-19"></a>retrieve_next_words &lt;-<span class="st"> </span><span class="cf">function</span>(input_string) {</span>
-<span id="cb16-20"><a href="#cb16-20"></a></span>
-<span id="cb16-21"><a href="#cb16-21"></a>  <span class="co">#Cleanup.</span></span>
-<span id="cb16-22"><a href="#cb16-22"></a>  input_string &lt;-<span class="st"> </span><span class="kw">replacement</span>(input_string)</span>
-<span id="cb16-23"><a href="#cb16-23"></a>  <span class="co">#Word length of input string.</span></span>
-<span id="cb16-24"><a href="#cb16-24"></a>  n &lt;-<span class="st"> </span><span class="kw">length</span>(<span class="kw">strsplit</span>(input_string, <span class="st">&quot; &quot;</span>)[[<span class="dv">1</span>]])</span>
-<span id="cb16-25"><a href="#cb16-25"></a>  <span class="co">#Final list.</span></span>
-<span id="cb16-26"><a href="#cb16-26"></a>  next_words &lt;-<span class="st"> </span><span class="ot">NULL</span></span>
-<span id="cb16-27"><a href="#cb16-27"></a>  </span>
-<span id="cb16-28"><a href="#cb16-28"></a>  <span class="cf">for</span> (bnt <span class="cf">in</span> bnts) {</span>
-<span id="cb16-29"><a href="#cb16-29"></a>    <span class="co">#Check if the string is in the line.</span></span>
-<span id="cb16-30"><a href="#cb16-30"></a>    <span class="cf">if</span>(<span class="kw">grepl</span>(input_string, bnt)) {</span>
-<span id="cb16-31"><a href="#cb16-31"></a>      <span class="co">#Find where in the line it is located.</span></span>
-<span id="cb16-32"><a href="#cb16-32"></a>      beginning &lt;-<span class="st"> </span><span class="kw">str_locate</span>(bnt, input_string)[<span class="dv">1</span>]</span>
-<span id="cb16-33"><a href="#cb16-33"></a>      <span class="co">#Start from where the string is, split by space, grab the next word.</span></span>
-<span id="cb16-34"><a href="#cb16-34"></a>      next_word &lt;-<span class="st"> </span><span class="kw">strsplit</span>(<span class="kw">substring</span>(bnt, beginning), <span class="st">&quot; &quot;</span>)[[<span class="dv">1</span>]][n<span class="op">+</span><span class="dv">1</span>]</span>
-<span id="cb16-35"><a href="#cb16-35"></a>      <span class="co">#Get rid of non-alphanumeric.</span></span>
-<span id="cb16-36"><a href="#cb16-36"></a>      next_word &lt;-<span class="st"> </span><span class="kw">str_replace_all</span>(next_word, <span class="kw">regex</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">W+&quot;</span>), <span class="st">&quot;&quot;</span>)</span>
-<span id="cb16-37"><a href="#cb16-37"></a>      <span class="co">#Update final list.</span></span>
-<span id="cb16-38"><a href="#cb16-38"></a>      next_words &lt;-<span class="st"> </span><span class="kw">c</span>(next_words, next_word)</span>
-<span id="cb16-39"><a href="#cb16-39"></a>    }</span>
-<span id="cb16-40"><a href="#cb16-40"></a>  }</span>
-<span id="cb16-41"><a href="#cb16-41"></a>  <span class="kw">return</span>(next_words)</span>
-<span id="cb16-42"><a href="#cb16-42"></a>}</span>
-<span id="cb16-43"><a href="#cb16-43"></a></span>
-<span id="cb16-44"><a href="#cb16-44"></a></span>
-<span id="cb16-45"><a href="#cb16-45"></a></span>
-<span id="cb16-46"><a href="#cb16-46"></a><span class="co">#This function will create a Frequency dataframe from next_words.</span></span>
-<span id="cb16-47"><a href="#cb16-47"></a>df_pred_creator &lt;-<span class="st"> </span><span class="cf">function</span>(next_words) {</span>
-<span id="cb16-48"><a href="#cb16-48"></a></span>
-<span id="cb16-49"><a href="#cb16-49"></a>  df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="kw">sort</span>(<span class="kw">table</span>(next_words), <span class="dt">decreasing =</span> T)) <span class="op">%&gt;%</span></span>
-<span id="cb16-50"><a href="#cb16-50"></a><span class="st">    `</span><span class="dt">colnames&lt;-</span><span class="st">`</span>(<span class="kw">c</span>(<span class="st">&quot;Possible Next Word&quot;</span>, <span class="st">&quot;Frequency&quot;</span>))</span>
-<span id="cb16-51"><a href="#cb16-51"></a>  </span>
-<span id="cb16-52"><a href="#cb16-52"></a>  <span class="kw">return</span>(df)</span>
-<span id="cb16-53"><a href="#cb16-53"></a>}</span>
-<span id="cb16-54"><a href="#cb16-54"></a></span>
-<span id="cb16-55"><a href="#cb16-55"></a><span class="kw">print</span>(<span class="st">&quot;SETUP COMPLETE&quot;</span>)</span></code></pre></div>
-</div>
-</div>
-</div>
-<div id="ii.-predictions-1" class="section level1">
+<div id="ii.-predictions" class="section level1">
 <h1>II. Predictions</h1>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>blogs &lt;-<span class="st"> </span><span class="kw">replacement</span>(blogs)</span>
+<div class="sourceCode" id="cb17">
+<pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>blogs &lt;-<span class="st"> </span><span class="kw">replacement</span>(blogs)</span>
 <span id="cb17-2"><a href="#cb17-2"></a></span>
 <span id="cb17-3"><a href="#cb17-3"></a>news &lt;-<span class="st"> </span><span class="kw">replacement</span>(news)</span>
 <span id="cb17-4"><a href="#cb17-4"></a></span>
@@ -720,68 +776,89 @@ summary {
 <span id="cb17-6"><a href="#cb17-6"></a></span>
 <span id="cb17-7"><a href="#cb17-7"></a>bnts &lt;-<span class="st"> </span><span class="kw">c</span>(blogs, news, tweets)</span>
 <span id="cb17-8"><a href="#cb17-8"></a></span>
-<span id="cb17-9"><a href="#cb17-9"></a><span class="kw">print</span>(<span class="st">&quot;REPLACEMENT COMPLETE&quot;</span>)</span></code></pre></div>
-<div id="section" class="section level3">
-<h3>1.</h3>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>q1_string &lt;-<span class="st"> &quot;The guy in front of me just bought a pound of bacon, a bouquet, and a case of&quot;</span></span>
+<span id="cb17-9"><a href="#cb17-9"></a><span class="kw">print</span>(<span class="st">&quot;REPLACEMENT COMPLETE&quot;</span>)</span></code></pre>
+        </div>
+        <div id="section" class="section level3">
+            <h3>1.</h3>
+            <div class="sourceCode" id="cb18">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>q1_string &lt;-<span class="st"> &quot;The guy in front of me just bought a pound of bacon, a bouquet, and a case of&quot;</span></span>
 <span id="cb18-2"><a href="#cb18-2"></a></span>
-<span id="cb18-3"><a href="#cb18-3"></a><span class="kw">possibilities</span>(q1_string)</span></code></pre></div>
-</div>
-<div id="section-1" class="section level3">
-<h3>2.</h3>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>q2_string &lt;-<span class="st"> &quot;You&#39;re the reason why I smile everyday. Can you follow me please? It would mean the&quot;</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="kw">possibilities</span>(q1_string)</span></code></pre>
+            </div>
+        </div>
+        <div id="section-1" class="section level3">
+            <h3>2.</h3>
+            <div class="sourceCode" id="cb19">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>q2_string &lt;-<span class="st"> &quot;You&#39;re the reason why I smile everyday. Can you follow me please? It would mean the&quot;</span></span>
 <span id="cb19-2"><a href="#cb19-2"></a></span>
-<span id="cb19-3"><a href="#cb19-3"></a><span class="kw">possibilities</span>(q2_string)</span></code></pre></div>
-</div>
-<div id="section-2" class="section level3">
-<h3>3.</h3>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>q3_string &lt;-<span class="st"> &quot;Hey sunshine, can you follow me and make me the&quot;</span></span>
+<span id="cb19-3"><a href="#cb19-3"></a><span class="kw">possibilities</span>(q2_string)</span></code></pre>
+            </div>
+        </div>
+        <div id="section-2" class="section level3">
+            <h3>3.</h3>
+            <div class="sourceCode" id="cb20">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>q3_string &lt;-<span class="st"> &quot;Hey sunshine, can you follow me and make me the&quot;</span></span>
 <span id="cb20-2"><a href="#cb20-2"></a></span>
-<span id="cb20-3"><a href="#cb20-3"></a><span class="kw">possibilities</span>(q3_string)</span></code></pre></div>
-</div>
-<div id="section-3" class="section level3">
-<h3>4.</h3>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>q4_string &lt;-<span class="st"> &quot;Very early observations on the Bills game: Offense still struggling but the&quot;</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="kw">possibilities</span>(q3_string)</span></code></pre>
+            </div>
+        </div>
+        <div id="section-3" class="section level3">
+            <h3>4.</h3>
+            <div class="sourceCode" id="cb21">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>q4_string &lt;-<span class="st"> &quot;Very early observations on the Bills game: Offense still struggling but the&quot;</span></span>
 <span id="cb21-2"><a href="#cb21-2"></a></span>
-<span id="cb21-3"><a href="#cb21-3"></a><span class="kw">possibilities</span>(q4_string)</span></code></pre></div>
-</div>
-<div id="section-4" class="section level3">
-<h3>5.</h3>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a>q5_string &lt;-<span class="st"> &quot;Go on a romantic date at the&quot;</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a><span class="kw">possibilities</span>(q4_string)</span></code></pre>
+            </div>
+        </div>
+        <div id="section-4" class="section level3">
+            <h3>5.</h3>
+            <div class="sourceCode" id="cb22">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a>q5_string &lt;-<span class="st"> &quot;Go on a romantic date at the&quot;</span></span>
 <span id="cb22-2"><a href="#cb22-2"></a></span>
-<span id="cb22-3"><a href="#cb22-3"></a><span class="kw">possibilities</span>(q5_string)</span></code></pre></div>
-</div>
-<div id="section-5" class="section level3">
-<h3>6.</h3>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>q6_string &lt;-<span class="st"> &quot;Well I&#39;m pretty sure my granny has some old bagpipes in her garage I&#39;ll dust them off and be on my&quot;</span></span>
+<span id="cb22-3"><a href="#cb22-3"></a><span class="kw">possibilities</span>(q5_string)</span></code></pre>
+            </div>
+        </div>
+        <div id="section-5" class="section level3">
+            <h3>6.</h3>
+            <div class="sourceCode" id="cb23">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>q6_string &lt;-<span class="st"> &quot;Well I&#39;m pretty sure my granny has some old bagpipes in her garage I&#39;ll dust them off and be on my&quot;</span></span>
 <span id="cb23-2"><a href="#cb23-2"></a></span>
-<span id="cb23-3"><a href="#cb23-3"></a><span class="kw">possibilities</span>(q6_string)</span></code></pre></div>
-</div>
-<div id="section-6" class="section level3">
-<h3>7.</h3>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>q7_string &lt;-<span class="st"> &quot;Ohhhhh #PointBreak is on tomorrow. Love that film and haven&#39;t seen it in quite some&quot;</span></span>
+<span id="cb23-3"><a href="#cb23-3"></a><span class="kw">possibilities</span>(q6_string)</span></code></pre>
+            </div>
+        </div>
+        <div id="section-6" class="section level3">
+            <h3>7.</h3>
+            <div class="sourceCode" id="cb24">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>q7_string &lt;-<span class="st"> &quot;Ohhhhh #PointBreak is on tomorrow. Love that film and haven&#39;t seen it in quite some&quot;</span></span>
 <span id="cb24-2"><a href="#cb24-2"></a></span>
-<span id="cb24-3"><a href="#cb24-3"></a><span class="kw">possibilities</span>(q7_string)</span></code></pre></div>
-</div>
-<div id="section-7" class="section level3">
-<h3>8.</h3>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>q8_string &lt;-<span class="st"> &quot;After the ice bucket challenge Louis will push his long wet hair out of his eyes with his little&quot;</span></span>
+<span id="cb24-3"><a href="#cb24-3"></a><span class="kw">possibilities</span>(q7_string)</span></code></pre>
+            </div>
+        </div>
+        <div id="section-7" class="section level3">
+            <h3>8.</h3>
+            <div class="sourceCode" id="cb25">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>q8_string &lt;-<span class="st"> &quot;After the ice bucket challenge Louis will push his long wet hair out of his eyes with his little&quot;</span></span>
 <span id="cb25-2"><a href="#cb25-2"></a></span>
-<span id="cb25-3"><a href="#cb25-3"></a><span class="kw">possibilities</span>(q8_string)</span></code></pre></div>
-</div>
-<div id="section-8" class="section level3">
-<h3>9.</h3>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a>q9_string &lt;-<span class="st"> &quot;Be grateful for the good times and keep the faith during the&quot;</span></span>
+<span id="cb25-3"><a href="#cb25-3"></a><span class="kw">possibilities</span>(q8_string)</span></code></pre>
+            </div>
+        </div>
+        <div id="section-8" class="section level3">
+            <h3>9.</h3>
+            <div class="sourceCode" id="cb26">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a>q9_string &lt;-<span class="st"> &quot;Be grateful for the good times and keep the faith during the&quot;</span></span>
 <span id="cb26-2"><a href="#cb26-2"></a></span>
-<span id="cb26-3"><a href="#cb26-3"></a><span class="kw">possibilities</span>(q9_string)</span></code></pre></div>
-</div>
-<div id="section-9" class="section level3">
-<h3>10.</h3>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>q10_string &lt;-<span class="st"> &quot;If this isn&#39;t the cutest thing you&#39;ve ever seen, then you must be&quot;</span></span>
+<span id="cb26-3"><a href="#cb26-3"></a><span class="kw">possibilities</span>(q9_string)</span></code></pre>
+            </div>
+        </div>
+        <div id="section-9" class="section level3">
+            <h3>10.</h3>
+            <div class="sourceCode" id="cb27">
+                <pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>q10_string &lt;-<span class="st"> &quot;If this isn&#39;t the cutest thing you&#39;ve ever seen, then you must be&quot;</span></span>
 <span id="cb27-2"><a href="#cb27-2"></a></span>
-<span id="cb27-3"><a href="#cb27-3"></a><span class="kw">possibilities</span>(q10_string)</span></code></pre></div>
-</div>
-</div>
+<span id="cb27-3"><a href="#cb27-3"></a><span class="kw">possibilities</span>(q10_string)</span></code></pre>
+            </div>
+        </div>
+    </div>
 
 
 
