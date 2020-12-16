@@ -1,0 +1,638 @@
+---
+title: "Data Science Capstone"
+subtitle: "Sentence Fragments and NLP II, with StopWords"
+author: "Rohan Lewis"
+date: "2020.12.16"
+output:
+  html_document :
+    fig_height : 5
+    fig_width : 8
+    highlight : espresso
+  
+---
+
+* * *
+
+# I.  Background
+
+I am now removing stopwords from all parts of the analysis.
+
+For each string:
+
+<ol>
+  <li>Contractions are expanded and stopwords are removed.</li>
+  <li>The new string is compared to all lines from the blogs, news, and tweets, which also have expanded contractions and removed stopwords.</li>
+  <li>If there are matches, the next word(s) are saved and output as a frequency table.</li>
+  <li>Whether or not there were matches, the left most word is sliced off the string and the steps are repeated.</li>
+  <li>At most, the top ten words will be output in a frequency table.</li>
+
+This data will be eventually used for predicting the next word in a random statement.
+
+See the Appendix for code.
+
+* * *
+
+```{r echo = FALSE, message = FALSE}
+
+knitr::opts_chunk$set(comment = NA)
+options("scipen" = 100)
+options(java.parameters = "-Xmx8g")
+
+```
+
+```{r echo = FALSE, message = FALSE}
+
+library(dplyr)
+library(qdap)
+library(readr)
+library(RWeka)
+library(stringr)
+library(textclean)
+library(tm)
+
+```
+
+```{r read, echo = FALSE, message = FALSE}
+
+#Files are read.  Non graphical characters are removed
+blogs <- read_lines(file = "en_US.blogs.txt")
+blogs = iconv(blogs, "UTF-8", "ASCII", sub = "byte")
+
+news <- read_lines(file = "en_US.news.txt")
+news = iconv(news, "UTF-8", "ASCII", sub = "byte")
+
+tweets <- read_lines(file = "en_US.twitter.txt")
+tweets = iconv(tweets, "UTF-8", "ASCII", sub = "byte")
+
+```
+
+These are the stop words removed.
+
+```{r stopwords, echo = FALSE, message = FALSE}
+
+Top25Words
+
+```
+
+```{r functions, echo = FALSE, message = FALSE}
+
+#Text Cleanup Function:
+clean_up <- function(data) {
+  
+  #"’" is replaced with "'", contractions are expanded.
+  temp <- replace_contraction(gsub("’", "'", data),
+                              contraction.key = lexicon::key_contractions)
+  #"U.S." is replaced with "US".
+  temp <- gsub("U.S.", "US", temp)
+  #"a.m." is replaced with "am".
+  temp <- gsub("a.m.", "am", temp)
+  #"p.m." is replaced with "pm".
+  temp <- gsub("p.m.", "pm", temp)
+  #Remove punctuations.
+  temp <- removePunctuation(temp)
+  #Remove stopwords.
+  temp <- rm_stopwords(temp)
+
+  return(temp)
+}
+
+
+
+#Function returns the word immediately after a string for all lines that contain the string."
+retrieve_next_words <- function(input_string_split) {
+
+  #Word length of input string.
+  n <- length(input_string_split)
+  
+  #Recombine into string
+  input_string <- paste(input_string_split, collapse = " ")
+  
+  #Print string and whitespace.
+  cat(paste('\n\n', input_string, '...\n'))
+
+  #Final list.
+  next_words <- NULL
+  
+  for (bnt in bnts) {
+    #Check if the string is in the line.
+    if(grepl(input_string, bnt)) {
+      #Find where in the line it is located.
+      beginning <- str_locate(bnt, input_string)[1]
+      #Start from where the string is, split by space, grab the next word.
+      next_word <- strsplit(substring(bnt, beginning), " ")[[1]][n+1]
+      #Get rid of non-alphanumeric.
+      next_word <- str_replace_all(next_word, regex("\\W+"), "")
+      #Update final list.
+      next_words <- c(next_words, next_word)
+    }
+  }
+  return(next_words)
+}
+
+
+
+possibilities <- function(q_string) {
+  
+  #Cleanup.
+  q_string_split <- clean_up(q_string)[[1]]
+  q_string <- paste(q_string_split, collapse = " ")
+  #Word length of input string.
+  n <- length(q_string_split)
+  
+  tables_displayed <- 0
+  while (n > 0) {
+
+    #Get next words from blogs, news, and tweets.
+    q_words <- retrieve_next_words(q_string_split)
+    
+    #If there is at least one word...
+    if (length(q_words > 0)) {
+      
+      #Update table count.
+      tables_displayed <- tables_displayed + 1
+      
+      #Return at most 10 entries of the frequency table.
+
+      df_freq <- df_pred_creator(q_words)
+      
+      if (dim(df_freq)[1] > 10){
+        print.data.frame(df_freq[1:10,])
+      } else {
+        print.data.frame(df_freq)
+      }
+    }
+    
+    #Whether it worked or not, try again with a shortened string.
+    #Shorten string by removing left most word.
+    q_string_split <- q_string_split[2:n]
+      q_string <- paste(q_string_split, collapse = " ")
+    n <- n-1
+    #Update word count.
+    if (n == 0) {
+      break
+    } 
+  }
+  
+  #All string lengths failed to match.
+  if (tables_displayed == 0) {
+    return("NO MATCHES")
+  }
+      
+}
+
+
+
+#This function will create a Frequency dataframe from next_words.
+df_pred_creator <- function(next_words) {
+
+  #Convert sorted table to dataframe.
+  df <- as.data.frame(sort(table(next_words), decreasing = T))
+  
+  #If there is only one column, change to two columns from index and single column.
+  if (length(df) == 1) {
+    
+    df <- cbind(newColName = rownames(df), df)
+    rownames(df) <- 1:nrow(df)
+  }
+  
+  #Change Column Names.
+  df <- df %>%
+    `colnames<-`(c("Possible Next Word", "Frequency"))
+  
+  return(df)
+}
+
+print("SETUP COMPLETE")
+
+```
+
+* * *
+
+# II. Predictions
+
+```{r predictions, echo = FALSE, message = FALSE}
+
+blogs <- clean_up(blogs)
+
+news <- clean_up(news)
+
+tweets <- clean_up(tweets)
+
+#List of all blogs, news, and tweets.
+bnts <- c(blogs, news, tweets)
+
+#Convert back to strings.
+bnts <- lapply(blogs, paste, collapse = " ")
+
+print("REPLACEMENT COMPLETE")
+
+```
+
+## 1. "When you breathe, I want to be the air for you. I'll be there for you, I'd live and I'd..."
+
+```{r q1, echo = FALSE, message = FALSE}
+
+q1_string <- "When you breathe, I want to be the air for you. I'll be there for you, I'd live and I'd"
+
+possibilities(q1_string)
+
+```
+
+## 2. "Guy at my table's wife got up to go to the bathroom and I asked about dessert and he started telling me about his..."
+
+```{r q2, echo = FALSE, message = FALSE}
+
+q2_string <- "Guy at my table's wife got up to go to the bathroom and I asked about dessert and he started telling me about his"
+
+possibilities(q2_string)
+
+```
+
+## 3. "I'd give anything to see arctic monkeys this..."
+
+```{r q3, echo = FALSE, message = FALSE}
+
+q3_string <- "I'd give anything to see arctic monkeys this"
+
+possibilities(q3_string)
+
+```
+
+## 4. "Talking to your mom has the same effect as a hug and helps reduce your..."
+
+```{r q4, echo = FALSE, message = FALSE}
+
+q4_string <- "Talking to your mom has the same effect as a hug and helps reduce your"
+
+possibilities(q4_string)
+
+```
+
+## 5. "When you were in Holland you were like 1 inch away from me but you hadn't time to take a..."
+
+```{r q5, echo = FALSE, message = FALSE}
+
+q5_string <- "When you were in Holland you were like 1 inch away from me but you hadn't time to take a"
+
+possibilities(q5_string)
+
+```
+
+## 6. "I'd just like all of these questions answered, a presentation of evidence, and a jury to settle the..."
+
+```{r q6, echo = FALSE, message = FALSE}
+
+q6_string <- "I'd just like all of these questions answered, a presentation of evidence, and a jury to settle the"
+
+possibilities(q6_string)
+
+```
+
+## 7. "I can't deal with unsymetrical things. I can't even hold an uneven number of bags of groceries in each..."
+
+```{r q7, echo = FALSE, message = FALSE}
+
+q7_string <- "I can't deal with unsymetrical things. I can't even hold an uneven number of bags of groceries in each"
+
+possibilities(q7_string)
+
+```
+
+## 8. "Every inch of you is perfect from the bottom to the..."
+
+```{r q8, echo = FALSE, message = FALSE}
+
+q8_string <- "Every inch of you is perfect from the bottom to the"
+
+possibilities(q8_string)
+
+```
+
+## 9. "I’m thankful my childhood was filled with imagination and bruises from playing..."
+
+```{r q9, echo = FALSE, message = FALSE}
+
+q9_string <- "I’m thankful my childhood was filled with imagination and bruises from playing"
+
+possibilities(q9_string)
+
+```
+
+## 10. "I like how the same people are in almost all of Adam Sandler's..."
+
+```{r q10, echo = FALSE, message = FALSE}
+
+q10_string <- "I like how the same people are in almost all of Adam Sandler's"
+
+possibilities(q10_string)
+
+```
+
+# III. Summary
+
+Although it runs faster, the discrepancy between these answers and those of [Sentence Fragments and NLP II](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone_IV.html) suggests that removing stopwords is a terrible idea.
+
+A good example is "take care" and "take a look".  
+
+Stopwords are extremely useful in common phrases.
+
+# Appendix
+
+* * *
+
+## Setup
+
+```{r eval = FALSE}
+
+knitr::opts_chunk$set(comment = NA)
+options("scipen" = 100)
+options(java.parameters = "-Xmx8g")
+
+```
+
+### Packages
+
+```{r eval = FALSE}
+
+library(dplyr)
+library(readr)
+library(RWeka)
+library(stringr)
+library(textclean)
+library(tm)
+
+```
+
+### Read Files
+
+```{r eval = FALSE}
+
+#Files are read.  Non graphical characters are removed
+blogs <- read_lines(file = "en_US.blogs.txt")
+blogs = iconv(blogs, "UTF-8", "ASCII", sub = "byte")
+
+news <- read_lines(file = "en_US.news.txt")
+news = iconv(news, "UTF-8", "ASCII", sub = "byte")
+
+tweets <- read_lines(file = "en_US.twitter.txt")
+tweets = iconv(tweets, "UTF-8", "ASCII", sub = "byte")
+
+```
+
+### Stopwords
+
+```{r eval = FALSE}
+
+Top25Words
+
+```
+
+### Helper Functions
+
+```{r eval = FALSE}
+
+#Text Cleanup Function:
+clean_up <- function(data) {
+  
+  #"’" is replaced with "'", contractions are expanded.
+  temp <- replace_contraction(gsub("’", "'", data),
+                              contraction.key = lexicon::key_contractions)
+  #"U.S." is replaced with "US".
+  temp <- gsub("U.S.", "US", temp)
+  #"a.m." is replaced with "am".
+  temp <- gsub("a.m.", "am", temp)
+  #"p.m." is replaced with "pm".
+  temp <- gsub("p.m.", "pm", temp)
+  #Remove punctuations.
+  temp <- removePunctuation(temp)
+  #Remove stopwords.
+  temp <- rm_stopwords(temp)
+
+  return(temp)
+}
+
+
+
+#Function returns the word immediately after a string for all lines that contain the string."
+retrieve_next_words <- function(input_string_split) {
+
+  #Word length of input string.
+  n <- length(input_string_split)
+  
+  #Recombine into string
+  input_string <- paste(input_string_split, collapse = " ")
+  
+  #Print string and whitespace.
+  cat(paste('\n\n', input_string, '...\n'))
+
+  #Final list.
+  next_words <- NULL
+  
+  for (bnt in bnts) {
+    #Check if the string is in the line.
+    if(grepl(input_string, bnt)) {
+      #Find where in the line it is located.
+      beginning <- str_locate(bnt, input_string)[1]
+      #Start from where the string is, split by space, grab the next word.
+      next_word <- strsplit(substring(bnt, beginning), " ")[[1]][n+1]
+      #Get rid of non-alphanumeric.
+      next_word <- str_replace_all(next_word, regex("\\W+"), "")
+      #Update final list.
+      next_words <- c(next_words, next_word)
+    }
+  }
+  return(next_words)
+}
+
+
+
+possibilities <- function(q_string) {
+  
+  #Cleanup.
+  q_string_split <- clean_up(q_string)[[1]]
+  q_string <- paste(q_string_split, collapse = " ")
+  #Word length of input string.
+  n <- length(q_string_split)
+  
+  tables_displayed <- 0
+  while (n > 0) {
+
+    #Get next words from blogs, news, and tweets.
+    q_words <- retrieve_next_words(q_string_split)
+    
+    #If there is at least one word...
+    if (length(q_words > 0)) {
+      
+      #Update table count.
+      tables_displayed <- tables_displayed + 1
+      
+      #Return at most 10 entries of the frequency table.
+
+      df_freq <- df_pred_creator(q_words)
+      
+      if (dim(df_freq)[1] > 10){
+        print.data.frame(df_freq[1:10,])
+      } else {
+        print.data.frame(df_freq)
+      }
+    }
+    
+    #Whether it worked or not, try again with a shortened string.
+    #Shorten string by removing left most word.
+    q_string_split <- q_string_split[2:n]
+      q_string <- paste(q_string_split, collapse = " ")
+    n <- n-1
+    #Update word count.
+    if (n == 0) {
+      break
+    } 
+  }
+  
+  #All string lengths failed to match.
+  if (tables_displayed == 0) {
+    return("NO MATCHES")
+  }
+      
+}
+
+
+
+#This function will create a Frequency dataframe from next_words.
+df_pred_creator <- function(next_words) {
+
+  #Convert sorted table to dataframe.
+  df <- as.data.frame(sort(table(next_words), decreasing = T))
+  
+  #If there is only one column, change to two columns from index and single column.
+  if (length(df) == 1) {
+    
+    df <- cbind(newColName = rownames(df), df)
+    rownames(df) <- 1:nrow(df)
+  }
+  
+  #Change Column Names.
+  df <- df %>%
+    `colnames<-`(c("Possible Next Word", "Frequency"))
+  
+  return(df)
+}
+
+print("SETUP COMPLETE")
+
+```
+
+# II. Predictions
+
+```{r eval =  FALSE}
+
+blogs <- replacement(blogs)
+
+news <- replacement(news)
+
+tweets <- replacement(tweets)
+
+bnts <- c(blogs, news, tweets)
+
+print("REPLACEMENT COMPLETE")
+
+```
+
+### 1.
+
+```{r eval = FALSE}
+
+q1_string <- "When you breathe, I want to be the air for you. I'll be there for you, I'd live and I'd"
+
+possibilities(q1_string)
+
+```
+
+### 2.
+
+```{r eval = FALSE}
+
+q2_string <- "Guy at my table's wife got up to go to the bathroom and I asked about dessert and he started telling me about his"
+
+possibilities(q2_string)
+
+```
+
+### 3.
+
+```{r eval = FALSE}
+
+q3_string <- "I'd give anything to see arctic monkeys this"
+
+possibilities(q3_string)
+
+```
+
+### 4.
+
+```{r eval = FALSE}
+
+q4_string <- "Talking to your mom has the same effect as a hug and helps reduce your"
+
+possibilities(q4_string)
+
+```
+
+### 5.
+
+```{r eval = FALSE}
+
+q5_string <- "When you were in Holland you were like 1 inch away from me but you hadn't time to take a"
+
+possibilities(q5_string)
+
+```
+
+### 6.
+
+```{r eval = FALSE}
+
+q6_string <- "I'd just like all of these questions answered, a presentation of evidence, and a jury to settle the"
+
+possibilities(q6_string)
+
+```
+
+### 7. 
+
+```{r eval = FALSE}
+
+q7_string <- "I can't deal with unsymetrical things. I can't even hold an uneven number of bags of groceries in each"
+
+possibilities(q7_string)
+
+```
+
+### 8.
+
+```{r eval = FALSE}
+
+q8_string <- "Every inch of you is perfect from the bottom to the"
+
+possibilities(q8_string)
+
+```
+
+### 9.
+
+```{r eval = FALSE}
+
+q9_string <- "I’m thankful my childhood was filled with imagination and bruises from playing"
+
+possibilities(q9_string)
+
+```
+
+### 10.
+
+```{r eval = FALSE}
+
+q10_string <- "I like how the same people are in almost all of Adam Sandler's"
+
+possibilities(q10_string)
+
+```
