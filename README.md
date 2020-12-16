@@ -38,4 +38,6 @@
 
 [Sentence Fragments and NLP I](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone_III.html)
 
-[Sentence Fragments and NLP II](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone_IIII.html)
+[Sentence Fragments and NLP II](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone_IV.html)
+
+[Sentence Fragments and NLP III](https://humanrickshaw.github.io/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone_V.html)
