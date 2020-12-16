@@ -1,6 +1,6 @@
 ---
 title: "Data Science Capstone"
-subtitle: "Sentence Fragments and NLP II, with StopWords"
+subtitle: "Sentence Fragments and NLP III"
 author: "Rohan Lewis"
 date: "2020.12.16"
 output:
